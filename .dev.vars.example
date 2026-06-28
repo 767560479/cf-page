@@ -1,0 +1,2 @@
+# 本地密钥示例，复制为 .dev.vars 后填写（.dev.vars 已被 gitignore）
+# API_TOKEN=your-secret-token

@@ -1,0 +1,21 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "cf-page",
+  "compatibility_date": "2026-06-28",
+  "pages_build_output_dir": "./dist",
+  "compatibility_flags": ["nodejs_compat"],
+  "kv_namespaces": [
+    {
+      "binding": "KV",
+      "id": "cee9be6355984a6c8be270c14f4ce792"
+    }
+  ],
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "cf-page-db",
+      "database_id": "2ab186a0-8f06-480c-8c55-8be336086ce5",
+      "migrations_dir": "migrations"
+    }
+  ]
+}
