@@ -15,14 +15,20 @@ const state = {
   zoomScale: 1,
 }
 
+const MOBILE_MQ = window.matchMedia('(max-width: 900px)')
+
 const el = {
   svg: document.getElementById('ft-svg'),
   empty: document.getElementById('ft-empty'),
   focusSelect: document.getElementById('ft-focus-select'),
+  focusBadge: document.getElementById('ft-focus-badge'),
   genUp: document.getElementById('ft-gen-up'),
   genDown: document.getElementById('ft-gen-down'),
   search: document.getElementById('ft-search'),
   zoomLabel: document.getElementById('ft-zoom-label'),
+  panel: document.getElementById('ft-panel'),
+  panelBackdrop: document.getElementById('ft-panel-backdrop'),
+  panelClose: document.getElementById('ft-panel-close'),
   panelEmpty: document.getElementById('ft-panel-empty'),
   detailForm: document.getElementById('ft-detail-form'),
   personId: document.getElementById('ft-person-id'),
@@ -50,6 +56,35 @@ const el = {
 let gRoot
 let gZoom
 let zoomBehavior
+let touchStart = null
+
+function isMobile() {
+  return MOBILE_MQ.matches
+}
+
+function updateFocusBadge() {
+  if (!el.focusBadge) return
+  const p = state.persons.find((x) => x.id === state.focusId)
+  el.focusBadge.textContent = p ? `焦点：${p.name}` : '焦点：—'
+}
+
+function openPanel() {
+  if (!isMobile() || !el.panel) return
+  el.panel.classList.add('ft-panel--open')
+  if (el.panelBackdrop) {
+    el.panelBackdrop.hidden = false
+    el.panelBackdrop.setAttribute('aria-hidden', 'false')
+  }
+}
+
+function closePanel() {
+  if (!el.panel) return
+  el.panel.classList.remove('ft-panel--open')
+  if (el.panelBackdrop) {
+    el.panelBackdrop.hidden = true
+    el.panelBackdrop.setAttribute('aria-hidden', 'true')
+  }
+}
 
 async function api(path, options) {
   const res = await fetch(`${API}${path}`, {
@@ -99,6 +134,7 @@ function refreshFocusSelect() {
   }
   if (state.persons.length === 0) {
     state.focusId = null
+    updateFocusBadge()
     return
   }
   if (prev && state.persons.some((p) => p.id === prev)) {
@@ -107,6 +143,7 @@ function refreshFocusSelect() {
     state.focusId = state.persons[0].id
   }
   el.focusSelect.value = String(state.focusId)
+  updateFocusBadge()
 }
 
 async function loadTree() {
@@ -179,6 +216,12 @@ function initSvg() {
   zoomBehavior = d3
     .zoom()
     .scaleExtent([0.2, 3])
+    .filter((event) => {
+      if (event.type === 'dblclick') return false
+      const target = event.target
+      if (target instanceof Element && target.closest('.ft-node')) return false
+      return !event.ctrlKey && !event.button
+    })
     .on('zoom', (event) => {
       state.zoomTransform = event.transform
       state.zoomScale = event.transform.k
@@ -258,6 +301,29 @@ function renderGraph() {
     .on('click', (_, d) => {
       selectPerson(d.id)
     })
+    .on('touchstart', (event, d) => {
+      const t = event.touches[0]
+      touchStart = { x: t.clientX, y: t.clientY, id: d.id }
+    })
+    .on('touchend', (event, d) => {
+      if (!touchStart || touchStart.id !== d.id) return
+      const t = event.changedTouches[0]
+      const dx = t.clientX - touchStart.x
+      const dy = t.clientY - touchStart.y
+      if (dx * dx + dy * dy < 100) {
+        event.preventDefault()
+        selectPerson(d.id)
+      }
+      touchStart = null
+    })
+
+  nodesG
+    .filter((d) => d.id === state.graph.focus_id)
+    .append('text')
+    .attr('class', 'ft-node-focus-label')
+    .attr('x', NODE_W / 2)
+    .attr('y', -6)
+    .text('焦点')
 
   nodesG
     .filter((d) => d.id === state.graph.focus_id)
@@ -293,18 +359,28 @@ function renderGraph() {
         .attr('height', 36)
         .attr('clip-path', 'inset(0 round 18px)')
     } else {
-      g.append('circle')
-        .attr('class', 'ft-node-avatar-bg')
-        .attr('cx', 26)
-        .attr('cy', 28)
-        .attr('r', 18)
+      let avatarCls = 'ft-node-avatar-bg'
+      if (d.gender === 'male') avatarCls += ' ft-node-avatar-bg--male'
+      if (d.gender === 'female') avatarCls += ' ft-node-avatar-bg--female'
+      g.append('circle').attr('class', avatarCls).attr('cx', 26).attr('cy', 28).attr('r', 18)
+      let textCls = 'ft-node-avatar-text'
+      if (d.gender === 'male' || d.gender === 'female') textCls += ' ft-node-avatar-text--on-color'
       g.append('text')
-        .attr('class', 'ft-node-avatar-text')
+        .attr('class', textCls)
         .attr('x', 26)
         .attr('y', 28)
         .text(d.name.charAt(0))
     }
   })
+
+  nodesG
+    .filter((d) => d.gender === 'male' || d.gender === 'female')
+    .append('circle')
+    .attr('class', 'ft-node-gender-dot')
+    .attr('cx', NODE_W - 12)
+    .attr('cy', 12)
+    .attr('r', 4)
+    .attr('fill', (d) => (d.gender === 'male' ? '#64c6ff' : '#ff58ae'))
 
   nodesG
     .append('text')
@@ -380,6 +456,7 @@ async function selectPerson(id) {
   fillPersonSelect(el.spouse, state.persons, p.spouse_ids[0] ?? null, p.id)
   setMsg(el.panelMsg, '')
   renderGraph()
+  openPanel()
 }
 
 function openAddDialog(relatedId) {
@@ -473,6 +550,7 @@ async function deletePerson() {
     state.selectedId = null
     el.detailForm.hidden = true
     el.panelEmpty.hidden = false
+    closePanel()
     setMsg(el.panelMsg, '')
     await loadPersons()
     refreshFocusSelect()
@@ -553,6 +631,7 @@ async function createPerson(e) {
 function setupEvents() {
   el.focusSelect.addEventListener('change', async () => {
     state.focusId = Number(el.focusSelect.value)
+    updateFocusBadge()
     await loadTree()
   })
 
@@ -598,7 +677,11 @@ function setupEvents() {
     await loadTree()
   })
 
+  el.panelClose?.addEventListener('click', closePanel)
+  el.panelBackdrop?.addEventListener('click', closePanel)
+
   window.addEventListener('resize', () => {
+    if (!isMobile()) closePanel()
     initSvg()
     renderGraph()
     fitView()

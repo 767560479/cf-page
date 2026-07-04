@@ -9,11 +9,16 @@ export function FamilyTreePage() {
           <PageBack label="← 首页" />
           <h1 class="page-toolbar__title">家族树</h1>
         </div>
-        <div class="page-toolbar__group">
+        <div class="page-toolbar__group page-toolbar__group--focus">
+          <span id="ft-focus-badge" class="ft-focus-badge" aria-live="polite">
+            焦点：—
+          </span>
           <label class="toolbar-field">
-            <span>焦点</span>
-            <select id="ft-focus-select"></select>
+            <span class="visually-hidden">切换焦点</span>
+            <select id="ft-focus-select" aria-label="切换焦点成员"></select>
           </label>
+        </div>
+        <div class="page-toolbar__group page-toolbar__group--compact">
           <label class="toolbar-field">
             <span>上</span>
             <input id="ft-gen-up" type="number" min="0" max="10" value="3" />
@@ -26,7 +31,7 @@ export function FamilyTreePage() {
         <div class="page-toolbar__group page-toolbar__group--grow">
           <input id="ft-search" type="search" placeholder="搜索姓名…" class="toolbar-field" style="width:100%;max-width:200px;padding:6px 10px;border:none;border-radius:6px;box-shadow:inset 0 0 0 1px var(--color-stone-surface);background:var(--surface-white);" />
         </div>
-        <div class="page-toolbar__group">
+        <div class="page-toolbar__group page-toolbar__group--compact">
           <button type="button" id="ft-add-btn" class="btn-pill btn-pill--dark">
             + 添加成员
           </button>
@@ -56,7 +61,15 @@ export function FamilyTreePage() {
           <svg id="ft-svg" class="ft-svg" aria-label="家族树画布"></svg>
         </div>
 
+        <div id="ft-panel-backdrop" class="ft-panel-backdrop" hidden aria-hidden="true"></div>
+
         <aside id="ft-panel" class="split-layout__aside">
+          <div class="ft-panel-sheet-head">
+            <div class="ft-panel-handle" aria-hidden="true"></div>
+            <button type="button" id="ft-panel-close" class="ft-panel-close" aria-label="关闭详情">
+              ×
+            </button>
+          </div>
           <div id="ft-panel-empty" class="panel-empty">
             <p>点击节点查看详情</p>
           </div>

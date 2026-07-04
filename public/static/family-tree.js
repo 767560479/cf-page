@@ -4442,14 +4442,19 @@ var state = {
   zoomTransform: identity2,
   zoomScale: 1
 };
+var MOBILE_MQ = window.matchMedia("(max-width: 900px)");
 var el = {
   svg: document.getElementById("ft-svg"),
   empty: document.getElementById("ft-empty"),
   focusSelect: document.getElementById("ft-focus-select"),
+  focusBadge: document.getElementById("ft-focus-badge"),
   genUp: document.getElementById("ft-gen-up"),
   genDown: document.getElementById("ft-gen-down"),
   search: document.getElementById("ft-search"),
   zoomLabel: document.getElementById("ft-zoom-label"),
+  panel: document.getElementById("ft-panel"),
+  panelBackdrop: document.getElementById("ft-panel-backdrop"),
+  panelClose: document.getElementById("ft-panel-close"),
   panelEmpty: document.getElementById("ft-panel-empty"),
   detailForm: document.getElementById("ft-detail-form"),
   personId: document.getElementById("ft-person-id"),
@@ -4476,6 +4481,31 @@ var el = {
 var gRoot;
 var gZoom;
 var zoomBehavior;
+var touchStart = null;
+function isMobile() {
+  return MOBILE_MQ.matches;
+}
+function updateFocusBadge() {
+  if (!el.focusBadge) return;
+  const p2 = state.persons.find((x2) => x2.id === state.focusId);
+  el.focusBadge.textContent = p2 ? `\u7126\u70B9\uFF1A${p2.name}` : "\u7126\u70B9\uFF1A\u2014";
+}
+function openPanel() {
+  if (!isMobile() || !el.panel) return;
+  el.panel.classList.add("ft-panel--open");
+  if (el.panelBackdrop) {
+    el.panelBackdrop.hidden = false;
+    el.panelBackdrop.setAttribute("aria-hidden", "false");
+  }
+}
+function closePanel() {
+  if (!el.panel) return;
+  el.panel.classList.remove("ft-panel--open");
+  if (el.panelBackdrop) {
+    el.panelBackdrop.hidden = true;
+    el.panelBackdrop.setAttribute("aria-hidden", "true");
+  }
+}
 async function api(path, options) {
   const res = await fetch(`${API}${path}`, {
     headers: { "Content-Type": "application/json" },
@@ -4519,6 +4549,7 @@ function refreshFocusSelect() {
   }
   if (state.persons.length === 0) {
     state.focusId = null;
+    updateFocusBadge();
     return;
   }
   if (prev && state.persons.some((p2) => p2.id === prev)) {
@@ -4527,6 +4558,7 @@ function refreshFocusSelect() {
     state.focusId = state.persons[0].id;
   }
   el.focusSelect.value = String(state.focusId);
+  updateFocusBadge();
 }
 async function loadTree() {
   if (!state.focusId) {
@@ -4584,7 +4616,12 @@ function initSvg() {
   select_default2(el.svg).attr("width", rect.width).attr("height", rect.height);
   gRoot = select_default2(el.svg).append("g").attr("class", "ft-root");
   gZoom = gRoot.append("g").attr("class", "ft-zoom-layer");
-  zoomBehavior = zoom_default2().scaleExtent([0.2, 3]).on("zoom", (event) => {
+  zoomBehavior = zoom_default2().scaleExtent([0.2, 3]).filter((event) => {
+    if (event.type === "dblclick") return false;
+    const target = event.target;
+    if (target instanceof Element && target.closest(".ft-node")) return false;
+    return !event.ctrlKey && !event.button;
+  }).on("zoom", (event) => {
     state.zoomTransform = event.transform;
     state.zoomScale = event.transform.k;
     gZoom.attr("transform", event.transform);
@@ -4635,7 +4672,21 @@ function renderGraph() {
     return `translate(${pos.x - NODE_W / 2},${pos.y - NODE_H / 2})`;
   }).on("click", (_2, d) => {
     selectPerson(d.id);
+  }).on("touchstart", (event, d) => {
+    const t = event.touches[0];
+    touchStart = { x: t.clientX, y: t.clientY, id: d.id };
+  }).on("touchend", (event, d) => {
+    if (!touchStart || touchStart.id !== d.id) return;
+    const t = event.changedTouches[0];
+    const dx = t.clientX - touchStart.x;
+    const dy = t.clientY - touchStart.y;
+    if (dx * dx + dy * dy < 100) {
+      event.preventDefault();
+      selectPerson(d.id);
+    }
+    touchStart = null;
   });
+  nodesG.filter((d) => d.id === state.graph.focus_id).append("text").attr("class", "ft-node-focus-label").attr("x", NODE_W / 2).attr("y", -6).text("\u7126\u70B9");
   nodesG.filter((d) => d.id === state.graph.focus_id).append("rect").attr("class", "ft-node-focus-ring").attr("x", -4).attr("y", -4).attr("width", NODE_W + 8).attr("height", NODE_H + 8).attr("rx", 10).attr("pointer-events", "none");
   nodesG.append("rect").attr("class", (d) => {
     let c = "ft-node-card";
@@ -4648,10 +4699,16 @@ function renderGraph() {
     if (d.avatar_url) {
       g.append("image").attr("href", d.avatar_url).attr("x", 8).attr("y", 10).attr("width", 36).attr("height", 36).attr("clip-path", "inset(0 round 18px)");
     } else {
-      g.append("circle").attr("class", "ft-node-avatar-bg").attr("cx", 26).attr("cy", 28).attr("r", 18);
-      g.append("text").attr("class", "ft-node-avatar-text").attr("x", 26).attr("y", 28).text(d.name.charAt(0));
+      let avatarCls = "ft-node-avatar-bg";
+      if (d.gender === "male") avatarCls += " ft-node-avatar-bg--male";
+      if (d.gender === "female") avatarCls += " ft-node-avatar-bg--female";
+      g.append("circle").attr("class", avatarCls).attr("cx", 26).attr("cy", 28).attr("r", 18);
+      let textCls = "ft-node-avatar-text";
+      if (d.gender === "male" || d.gender === "female") textCls += " ft-node-avatar-text--on-color";
+      g.append("text").attr("class", textCls).attr("x", 26).attr("y", 28).text(d.name.charAt(0));
     }
   });
+  nodesG.filter((d) => d.gender === "male" || d.gender === "female").append("circle").attr("class", "ft-node-gender-dot").attr("cx", NODE_W - 12).attr("cy", 12).attr("r", 4).attr("fill", (d) => d.gender === "male" ? "#64c6ff" : "#ff58ae");
   nodesG.append("text").attr("class", "ft-node-name").attr("x", (d) => d.avatar_url ? 72 : NODE_W / 2).attr("y", 30).text((d) => d.name.length > 8 ? `${d.name.slice(0, 8)}\u2026` : d.name);
   nodesG.append("text").attr("class", "ft-node-dates").attr("x", (d) => d.avatar_url ? 72 : NODE_W / 2).attr("y", 48).text((d) => {
     if (d.birth_date && d.death_date) return `${d.birth_date} \u2014 ${d.death_date}`;
@@ -4712,6 +4769,7 @@ async function selectPerson(id2) {
   fillPersonSelect(el.spouse, state.persons, p2.spouse_ids[0] ?? null, p2.id);
   setMsg(el.panelMsg, "");
   renderGraph();
+  openPanel();
 }
 function openAddDialog(relatedId) {
   setMsg(el.addMsg, "");
@@ -4795,6 +4853,7 @@ async function deletePerson() {
     state.selectedId = null;
     el.detailForm.hidden = true;
     el.panelEmpty.hidden = false;
+    closePanel();
     setMsg(el.panelMsg, "");
     await loadPersons();
     refreshFocusSelect();
@@ -4869,6 +4928,7 @@ async function createPerson(e) {
 function setupEvents() {
   el.focusSelect.addEventListener("change", async () => {
     state.focusId = Number(el.focusSelect.value);
+    updateFocusBadge();
     await loadTree();
   });
   el.genUp.addEventListener("change", () => loadTree());
@@ -4906,7 +4966,10 @@ function setupEvents() {
     refreshFocusSelect();
     await loadTree();
   });
+  el.panelClose?.addEventListener("click", closePanel);
+  el.panelBackdrop?.addEventListener("click", closePanel);
   window.addEventListener("resize", () => {
+    if (!isMobile()) closePanel();
     initSvg();
     renderGraph();
     fitView();
