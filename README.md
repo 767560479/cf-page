@@ -57,7 +57,7 @@ pnpm exec wrangler pages dev dist --port 8788
 | `/lab` | KV / D1 实验室 |
 | `/codex` | Codex 概念展示页 |
 
-> **家族树**依赖 D1。默认 `pnpm run dev` 使用**本地 D1**，需先 `pnpm run db:migrate:local`。若要用**线上库**调试，执行 `pnpm run dev:remote`（配置见 `wrangler.jsonc` → `env.dev-remote`，D1 绑定 `remote: true`）。若 API 无数据，可用 `pnpm run build` + `pnpm exec wrangler pages dev dist` 验证完整绑定。
+> **家族树**依赖 D1。默认 `pnpm run dev` 使用**本地 D1**，需先 `pnpm run db:migrate:local`。若要用**线上库**调试，执行 `pnpm run dev:remote`（使用 [`wrangler.dev-remote.jsonc`](wrangler.dev-remote.jsonc)，D1 绑定 `remote: true`）。若 API 无数据，可用 `pnpm run build` + `pnpm exec wrangler pages dev dist` 验证完整绑定。
 
 ## 家族树
 

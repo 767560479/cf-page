@@ -9,7 +9,7 @@ export default defineConfig(({ mode }) => ({
     devServer({
       adapter: () =>
         cloudflareAdapter(
-          mode === 'dev-remote' ? { proxy: { environment: 'dev-remote' } } : undefined
+          mode === 'dev-remote' ? { configPath: './wrangler.dev-remote.jsonc' } : undefined
         ),
       entry: 'src/index.tsx'
     })
