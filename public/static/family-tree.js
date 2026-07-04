@@ -4433,6 +4433,8 @@ var To = sr;
 var NODE_W = 136;
 var NODE_H = 72;
 var NODE_GAP = 20;
+var SPOUSE_GAP = 32;
+var LAYER_Y_TOLERANCE = 36;
 var API = "/api/family";
 var GENDER_STYLE = {
   male: { fill: "rgba(100,198,255,0.35)", stroke: "#64c6ff", avatar: "#64c6ff", dot: "#64c6ff" },
@@ -4448,6 +4450,7 @@ var state = {
   selectedId: null,
   highlightId: null,
   graph: null,
+  collapsedIds: /* @__PURE__ */ new Set(),
   zoomTransform: identity2,
   zoomScale: 1
 };
@@ -4564,13 +4567,19 @@ function showContextMenu(personId, clientX, clientY) {
   el.contextMenu.style.left = `${left}px`;
   el.contextMenu.style.top = `${top}px`;
 }
+function isToggleTarget(event) {
+  const target = event.target;
+  return target instanceof Element && !!target.closest(".ft-node-toggle");
+}
 function bindNodePointerEvents(nodesG) {
   nodesG.style("touch-action", "manipulation").on("contextmenu", (event, d) => {
+    if (isToggleTarget(event)) return;
     event.preventDefault();
     event.stopPropagation();
     suppressNodeClick = true;
     showContextMenu(d.id, event.clientX, event.clientY);
   }).on("pointerdown", (event, d) => {
+    if (isToggleTarget(event)) return;
     if (event.pointerType === "mouse" && event.button !== 0) return;
     clearTimeout(longPressTimer);
     longPressTimer = setTimeout(() => {
@@ -4579,6 +4588,7 @@ function bindNodePointerEvents(nodesG) {
       showContextMenu(d.id, event.clientX, event.clientY);
     }, LONG_PRESS_MS);
   }).on("pointerup", (event, d) => {
+    if (isToggleTarget(event)) return;
     if (event.pointerType === "mouse" && event.button !== 0) return;
     clearTimeout(longPressTimer);
     longPressTimer = null;
@@ -4640,7 +4650,7 @@ function setEmptyState(visible, message = "", showAddBtn = true) {
 }
 async function loadPersons() {
   const data = await api("/persons");
-  state.persons = data.persons ?? [];
+  state.persons = Array.isArray(data.persons) ? data.persons : [];
   if (state.persons.length > 0) {
     setEmptyState(false);
   }
@@ -4668,7 +4678,7 @@ function refreshFocusSelect() {
   el.focusSelect.value = String(state.focusId);
   updateFocusBadge();
 }
-async function loadTree() {
+async function loadTree({ revealId } = {}) {
   if (!state.focusId && state.persons.length > 0) {
     refreshFocusSelect();
   }
@@ -4685,84 +4695,251 @@ async function loadTree() {
   setEmptyState(false);
   const up = Number(el.genUp.value) || 3;
   const down = Number(el.genDown.value) || 3;
-  state.graph = await api(`/tree?focus=${state.focusId}&up=${up}&down=${down}`);
-  if (!state.graph.nodes || state.graph.nodes.length === 0) {
+  const raw = await api(`/tree?focus=${state.focusId}&up=${up}&down=${down}`);
+  state.graph = normalizeTreeGraph(raw);
+  if (revealId) revealPersonInTree(revealId);
+  if (!state.graph.nodes.length) {
     setEmptyState(true, "\u6682\u65E0\u53EF\u89C1\u8282\u70B9\uFF0C\u8BF7\u5207\u6362\u7126\u70B9\u6216\u6DFB\u52A0\u5173\u7CFB", false);
     renderGraph();
     return;
   }
   setEmptyState(false);
   renderGraph();
-  fitView();
+  if (revealId) centerOnNode(revealId);
+  else fitView();
+}
+function normalizeTreeGraph(raw) {
+  return {
+    focus_id: raw?.focus_id ?? null,
+    nodes: Array.isArray(raw?.nodes) ? raw.nodes : [],
+    edges: Array.isArray(raw?.edges) ? raw.edges : []
+  };
+}
+function buildChildrenMap(edges) {
+  const map = /* @__PURE__ */ new Map();
+  for (const edge of edges) {
+    if (edge.type !== "parent") continue;
+    const list = map.get(edge.from) ?? [];
+    if (!list.includes(edge.to)) list.push(edge.to);
+    map.set(edge.from, list);
+  }
+  return map;
+}
+function buildParentMap(edges) {
+  const map = /* @__PURE__ */ new Map();
+  for (const edge of edges) {
+    if (edge.type !== "parent") continue;
+    const list = map.get(edge.to) ?? [];
+    if (!list.includes(edge.from)) list.push(edge.from);
+    map.set(edge.to, list);
+  }
+  return map;
+}
+function collectDescendants(rootId, childrenMap) {
+  const hidden = /* @__PURE__ */ new Set();
+  const queue = [...childrenMap.get(rootId) ?? []];
+  while (queue.length) {
+    const id2 = queue.shift();
+    if (hidden.has(id2)) continue;
+    hidden.add(id2);
+    for (const childId of childrenMap.get(id2) ?? []) queue.push(childId);
+  }
+  return hidden;
+}
+function applyCollapsedFilter(graph, collapsedIds) {
+  if (!collapsedIds.size) return graph;
+  const childrenMap = buildChildrenMap(graph.edges);
+  const hidden = /* @__PURE__ */ new Set();
+  for (const id2 of collapsedIds) {
+    for (const d of collectDescendants(id2, childrenMap)) hidden.add(d);
+  }
+  const visibleIds = new Set(graph.nodes.filter((n) => !hidden.has(n.id)).map((n) => n.id));
+  return {
+    focus_id: graph.focus_id,
+    nodes: graph.nodes.filter((n) => visibleIds.has(n.id)),
+    edges: graph.edges.filter((e) => visibleIds.has(e.from) && visibleIds.has(e.to))
+  };
+}
+function pruneCollapsedIds() {
+  if (!state.graph) return;
+  const ids = new Set(state.graph.nodes.map((n) => n.id));
+  for (const id2 of state.collapsedIds) {
+    if (!ids.has(id2)) state.collapsedIds.delete(id2);
+  }
+}
+function revealPersonInTree(personId) {
+  if (!state.graph) return;
+  state.collapsedIds.delete(personId);
+  const parentMap = buildParentMap(state.graph.edges);
+  const queue = [personId];
+  const seen = /* @__PURE__ */ new Set();
+  while (queue.length) {
+    const id2 = queue.shift();
+    if (seen.has(id2)) continue;
+    seen.add(id2);
+    state.collapsedIds.delete(id2);
+    for (const parentId of parentMap.get(id2) ?? []) {
+      state.collapsedIds.delete(parentId);
+      queue.push(parentId);
+    }
+  }
+}
+function toggleCollapse(personId) {
+  if (state.collapsedIds.has(personId)) state.collapsedIds.delete(personId);
+  else state.collapsedIds.add(personId);
+  renderGraph();
+}
+function expandAll() {
+  state.collapsedIds.clear();
+  renderGraph();
+}
+function collapseAll() {
+  if (!state.graph) return;
+  const childrenMap = buildChildrenMap(state.graph.edges);
+  const keepUncollapsed = /* @__PURE__ */ new Set([state.graph.focus_id]);
+  for (const edge of state.graph.edges) {
+    if (edge.type !== "spouse") continue;
+    if (edge.from === state.graph.focus_id || edge.to === state.graph.focus_id) {
+      keepUncollapsed.add(edge.from);
+      keepUncollapsed.add(edge.to);
+    }
+  }
+  state.collapsedIds.clear();
+  for (const [id2, children2] of childrenMap) {
+    if (children2.length > 0 && !keepUncollapsed.has(id2)) state.collapsedIds.add(id2);
+  }
+  renderGraph();
 }
 function layoutGraph(graph) {
+  const nodes = graph.nodes ?? [];
+  const edges = graph.edges ?? [];
+  const spouseEdges = edges.filter((e) => e.type === "spouse");
   const g = new To.graphlib.Graph();
-  g.setGraph({ rankdir: "TB", nodesep: 56, ranksep: 72, marginx: 40, marginy: 40 });
+  g.setGraph({ rankdir: "TB", nodesep: 56, ranksep: NODE_H + NODE_GAP, marginx: 40, marginy: 40 });
   g.setDefaultEdgeLabel(() => ({}));
-  for (const node of graph.nodes) {
+  for (const node of nodes) {
     g.setNode(String(node.id), { width: NODE_W, height: NODE_H, person: node });
   }
-  for (const edge of graph.edges) {
+  for (const edge of edges) {
     if (edge.type === "parent") {
       g.setEdge(String(edge.from), String(edge.to), { edgeType: "parent" });
-    } else if (edge.type === "spouse") {
-      const from = String(edge.from);
-      const to = String(edge.to);
-      if (!g.hasEdge(from, to) && !g.hasEdge(to, from)) {
-        g.setEdge(from, to, { edgeType: "spouse", minlen: 0, weight: 2 });
-      }
     }
   }
   To.layout(g);
   const positions = /* @__PURE__ */ new Map();
-  g.nodes().forEach((id2) => {
-    const n = g.node(id2);
-    positions.set(Number(id2), { x: n.x, y: n.y, person: n.person });
-  });
-  const spouseEdges = graph.edges.filter((e) => e.type === "spouse");
+  const nodeIds = g.nodes();
+  if (nodeIds) {
+    nodeIds.forEach((id2) => {
+      const n = g.node(id2);
+      if (!n) return;
+      positions.set(Number(id2), { x: n.x, y: n.y, person: n.person });
+    });
+  }
+  anchorSpousesToPartners(positions, spouseEdges, edges.filter((e) => e.type === "parent"));
+  const layers = groupNodesByLayer(positions);
+  for (const layer of layers) {
+    packLayer(positions, buildLayerUnits(layer.ids, spouseEdges, positions));
+  }
+  resolveLayerOverlaps(positions);
+  return { positions, spouseEdges, parentEdges: edges.filter((e) => e.type === "parent") };
+}
+function anchorSpousesToPartners(positions, spouseEdges, parentEdges) {
+  const childIds = new Set(parentEdges.map((e) => e.to));
+  const parentIds = new Set(parentEdges.map((e) => e.from));
   for (const edge of spouseEdges) {
     const a = positions.get(edge.from);
     const b = positions.get(edge.to);
     if (!a || !b) continue;
-    const avgY = (a.y + b.y) / 2;
-    a.y = avgY;
-    b.y = avgY;
-    const gap = NODE_W + 32;
-    const mid = (a.x + b.x) / 2;
-    a.x = mid - gap / 2;
-    b.x = mid + gap / 2;
-    positions.set(edge.from, a);
-    positions.set(edge.to, b);
+    let y;
+    const aInTree = childIds.has(edge.from) || parentIds.has(edge.from);
+    const bInTree = childIds.has(edge.to) || parentIds.has(edge.to);
+    if (aInTree && !bInTree) y = a.y;
+    else if (bInTree && !aInTree) y = b.y;
+    else y = Math.max(a.y, b.y);
+    a.y = y;
+    b.y = y;
   }
-  resolveOverlaps(positions);
-  return { positions, spouseEdges, parentEdges: graph.edges.filter((e) => e.type === "parent") };
 }
-function resolveOverlaps(positions) {
-  const ids = [...positions.keys()];
-  for (let iter = 0; iter < 16; iter++) {
+function groupNodesByLayer(positions) {
+  const layers = [];
+  for (const [id2, pos] of positions) {
+    let layer = layers.find((l) => Math.abs(l.y - pos.y) < LAYER_Y_TOLERANCE);
+    if (!layer) {
+      layer = { y: pos.y, ids: [] };
+      layers.push(layer);
+    }
+    layer.ids.push(id2);
+    layer.y = layer.ids.reduce((s, i) => s + positions.get(i).y, 0) / layer.ids.length;
+  }
+  for (const layer of layers) {
+    for (const id2 of layer.ids) {
+      const p2 = positions.get(id2);
+      p2.y = layer.y;
+      positions.set(id2, p2);
+    }
+  }
+  return layers;
+}
+function buildLayerUnits(layerIds, spouseEdges, positions) {
+  const inLayer = new Set(layerIds);
+  const partnerOf = /* @__PURE__ */ new Map();
+  for (const e of spouseEdges) {
+    if (inLayer.has(e.from) && inLayer.has(e.to)) {
+      partnerOf.set(e.from, e.to);
+      partnerOf.set(e.to, e.from);
+    }
+  }
+  const used = /* @__PURE__ */ new Set();
+  const units = [];
+  const sorted = [...layerIds].sort((a, b) => positions.get(a).x - positions.get(b).x);
+  for (const id2 of sorted) {
+    if (used.has(id2)) continue;
+    const partner = partnerOf.get(id2);
+    if (partner != null && !used.has(partner)) {
+      const [left, right] = [id2, partner].sort((a, b) => positions.get(a).x - positions.get(b).x);
+      units.push({ ids: [left, right], width: NODE_W * 2 + SPOUSE_GAP });
+      used.add(left);
+      used.add(right);
+    } else {
+      units.push({ ids: [id2], width: NODE_W });
+      used.add(id2);
+    }
+  }
+  return units;
+}
+function packLayer(positions, units) {
+  if (units.length === 0) return;
+  const totalWidth = units.reduce((s, u) => s + u.width, 0) + Math.max(0, units.length - 1) * NODE_GAP;
+  const avgX = units.reduce((s, u) => {
+    const cx = u.ids.reduce((ss, id2) => ss + positions.get(id2).x, 0) / u.ids.length;
+    return s + cx;
+  }, 0) / units.length;
+  let cursor = avgX - totalWidth / 2;
+  for (const unit of units) {
+    if (unit.ids.length === 2) {
+      const [left, right] = unit.ids;
+      positions.get(left).x = cursor + NODE_W / 2;
+      positions.get(right).x = cursor + NODE_W + SPOUSE_GAP + NODE_W / 2;
+    } else {
+      positions.get(unit.ids[0]).x = cursor + NODE_W / 2;
+    }
+    cursor += unit.width + NODE_GAP;
+  }
+}
+function resolveLayerOverlaps(positions) {
+  for (let iter = 0; iter < 12; iter++) {
     let moved = false;
-    for (let i = 0; i < ids.length; i++) {
-      for (let j2 = i + 1; j2 < ids.length; j2++) {
-        const idA = ids[i];
-        const idB = ids[j2];
-        const a = positions.get(idA);
-        const b = positions.get(idB);
-        const dx = b.x - a.x;
-        const dy = b.y - a.y;
-        const overlapX = NODE_W + NODE_GAP - Math.abs(dx);
-        const overlapY = NODE_H + NODE_GAP - Math.abs(dy);
-        if (overlapX > 0 && overlapY > 0) {
-          if (overlapX <= overlapY) {
-            const shift = overlapX / 2 + 1;
-            a.x -= dx >= 0 ? shift : -shift;
-            b.x += dx >= 0 ? shift : -shift;
-          } else {
-            const shift = overlapY / 2 + 1;
-            a.y -= dy >= 0 ? shift : -shift;
-            b.y += dy >= 0 ? shift : -shift;
-          }
-          positions.set(idA, a);
-          positions.set(idB, b);
+    for (const layer of groupNodesByLayer(positions)) {
+      const ids = [...layer.ids].sort((a, b) => positions.get(a).x - positions.get(b).x);
+      for (let j2 = 1; j2 < ids.length; j2++) {
+        const left = positions.get(ids[j2 - 1]);
+        const right = positions.get(ids[j2]);
+        const need = NODE_W + NODE_GAP;
+        const gap = right.x - left.x;
+        if (gap < need) {
+          const shift = (need - gap) / 2 + 1;
+          left.x -= shift;
+          right.x += shift;
           moved = true;
         }
       }
@@ -4809,7 +4986,10 @@ function renderGraph() {
   }
   gZoom.selectAll("*").remove();
   if (!state.graph || state.graph.nodes.length === 0) return;
-  const { positions, spouseEdges, parentEdges } = layoutGraph(state.graph);
+  pruneCollapsedIds();
+  const visibleGraph = applyCollapsedFilter(state.graph, state.collapsedIds);
+  const fullChildrenMap = buildChildrenMap(state.graph.edges);
+  const { positions, spouseEdges, parentEdges } = layoutGraph(visibleGraph);
   const edgesG = gZoom.append("g").attr("class", "ft-edges");
   edgesG.selectAll(".ft-edge--parent").data(parentEdges).join("path").attr("class", "ft-edge ft-edge--parent").attr("d", (d) => {
     const from = positions.get(d.from);
@@ -4823,8 +5003,9 @@ function renderGraph() {
     if (!a || !b) return "";
     return spousePath(a, b);
   });
-  const nodesG = gZoom.selectAll(".ft-node").data(state.graph.nodes).join("g").attr("class", (d) => {
+  const nodesG = gZoom.selectAll(".ft-node").data(visibleGraph.nodes).join("g").attr("class", (d) => {
     let cls = "ft-node";
+    if (state.collapsedIds.has(d.id)) cls += " ft-node--collapsed";
     if (d.id === state.selectedId) cls += " ft-node--selected";
     if (d.id === state.highlightId) cls += " ft-node--highlight";
     return cls;
@@ -4871,6 +5052,24 @@ function renderGraph() {
     if (d.birth_date) return `\u751F\u4E8E ${d.birth_date}`;
     if (d.death_date) return `\u2014 ${d.death_date}`;
     return "";
+  });
+  nodesG.each(function(d) {
+    const childCount = (fullChildrenMap.get(d.id) ?? []).length;
+    if (childCount === 0) return;
+    const collapsed = state.collapsedIds.has(d.id);
+    const g = select_default2(this);
+    const toggleG = g.append("g").attr("class", `ft-node-toggle${collapsed ? " ft-node-toggle--collapsed" : ""}`).attr("transform", `translate(${NODE_W / 2}, ${NODE_H + 4})`).style("cursor", "pointer");
+    toggleG.append("rect").attr("class", "ft-node-toggle-bg").attr("x", -9).attr("y", -9).attr("width", 18).attr("height", 18).attr("rx", 4);
+    toggleG.append("text").attr("class", "ft-node-toggle-icon").attr("y", 1).text(collapsed ? "\u25B6" : "\u25BC");
+    if (collapsed) {
+      toggleG.append("text").attr("class", "ft-node-collapse-badge").attr("x", 14).attr("y", 1).text(String(childCount));
+    }
+    toggleG.on("click", (event) => {
+      event.stopPropagation();
+      toggleCollapse(d.id);
+    });
+    toggleG.on("pointerdown", (event) => event.stopPropagation());
+    toggleG.on("pointerup", (event) => event.stopPropagation());
   });
 }
 function fitView() {
@@ -5029,7 +5228,7 @@ async function savePerson(e) {
     setMsg(el.panelMsg, "\u5DF2\u4FDD\u5B58", "ok");
     await loadPersons();
     refreshFocusSelect();
-    await loadTree();
+    await loadTree({ revealId: id2 });
     await selectPerson(id2, { openDrawer: false });
     if (isMobile()) closePanel();
   } catch (err) {
@@ -5111,9 +5310,9 @@ async function createPerson(e) {
     el.addDialog.close();
     resetAddDraft();
     await loadPersons();
-    state.focusId = newId2;
+    state.focusId = relType && relatedId ? relatedId : newId2;
     refreshFocusSelect();
-    await loadTree();
+    await loadTree({ revealId: newId2 });
     await selectPerson(newId2);
   } catch (err) {
     setMsg(el.addMsg, err.message, "error");
@@ -5146,6 +5345,8 @@ function setupEvents() {
     select_default2(el.svg).transition().duration(200).call(zoomBehavior.scaleBy, 0.8);
   });
   document.getElementById("ft-fit-btn").addEventListener("click", fitView);
+  document.getElementById("ft-expand-all")?.addEventListener("click", expandAll);
+  document.getElementById("ft-collapse-all")?.addEventListener("click", collapseAll);
   document.getElementById("ft-add-btn").addEventListener("click", () => openAddDialog());
   document.getElementById("ft-edit-btn")?.addEventListener("click", () => openEditorForSelection());
   document.getElementById("ft-empty-add").addEventListener("click", () => openAddDialog());

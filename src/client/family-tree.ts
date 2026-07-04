@@ -4,6 +4,8 @@ import dagre from '@dagrejs/dagre'
 const NODE_W = 136
 const NODE_H = 72
 const NODE_GAP = 20
+const SPOUSE_GAP = 32
+const LAYER_Y_TOLERANCE = 36
 const API = '/api/family'
 
 const GENDER_STYLE = {
@@ -22,6 +24,7 @@ const state = {
   selectedId: null,
   highlightId: null,
   graph: null,
+  collapsedIds: new Set(),
   zoomTransform: d3.zoomIdentity,
   zoomScale: 1,
 }
@@ -154,16 +157,23 @@ function showContextMenu(personId, clientX, clientY) {
   el.contextMenu.style.top = `${top}px`
 }
 
+function isToggleTarget(event) {
+  const target = event.target
+  return target instanceof Element && !!target.closest('.ft-node-toggle')
+}
+
 function bindNodePointerEvents(nodesG) {
   nodesG
     .style('touch-action', 'manipulation')
     .on('contextmenu', (event, d) => {
+      if (isToggleTarget(event)) return
       event.preventDefault()
       event.stopPropagation()
       suppressNodeClick = true
       showContextMenu(d.id, event.clientX, event.clientY)
     })
     .on('pointerdown', (event, d) => {
+      if (isToggleTarget(event)) return
       if (event.pointerType === 'mouse' && event.button !== 0) return
       clearTimeout(longPressTimer)
       longPressTimer = setTimeout(() => {
@@ -173,6 +183,7 @@ function bindNodePointerEvents(nodesG) {
       }, LONG_PRESS_MS)
     })
     .on('pointerup', (event, d) => {
+      if (isToggleTarget(event)) return
       if (event.pointerType === 'mouse' && event.button !== 0) return
       clearTimeout(longPressTimer)
       longPressTimer = null
@@ -243,7 +254,7 @@ function setEmptyState(visible, message = '', showAddBtn = true) {
 
 async function loadPersons() {
   const data = await api('/persons')
-  state.persons = data.persons ?? []
+  state.persons = Array.isArray(data.persons) ? data.persons : []
   if (state.persons.length > 0) {
     setEmptyState(false)
   }
@@ -273,7 +284,7 @@ function refreshFocusSelect() {
   updateFocusBadge()
 }
 
-async function loadTree() {
+async function loadTree({ revealId } = {}) {
   if (!state.focusId && state.persons.length > 0) {
     refreshFocusSelect()
   }
@@ -290,93 +301,289 @@ async function loadTree() {
   setEmptyState(false)
   const up = Number(el.genUp.value) || 3
   const down = Number(el.genDown.value) || 3
-  state.graph = await api(`/tree?focus=${state.focusId}&up=${up}&down=${down}`)
-  if (!state.graph.nodes || state.graph.nodes.length === 0) {
+  const raw = await api(`/tree?focus=${state.focusId}&up=${up}&down=${down}`)
+  state.graph = normalizeTreeGraph(raw)
+  if (revealId) revealPersonInTree(revealId)
+  if (!state.graph.nodes.length) {
     setEmptyState(true, '暂无可见节点，请切换焦点或添加关系', false)
     renderGraph()
     return
   }
   setEmptyState(false)
   renderGraph()
-  fitView()
+  if (revealId) centerOnNode(revealId)
+  else fitView()
+}
+
+function normalizeTreeGraph(raw) {
+  return {
+    focus_id: raw?.focus_id ?? null,
+    nodes: Array.isArray(raw?.nodes) ? raw.nodes : [],
+    edges: Array.isArray(raw?.edges) ? raw.edges : [],
+  }
+}
+
+function buildChildrenMap(edges) {
+  const map = new Map()
+  for (const edge of edges) {
+    if (edge.type !== 'parent') continue
+    const list = map.get(edge.from) ?? []
+    if (!list.includes(edge.to)) list.push(edge.to)
+    map.set(edge.from, list)
+  }
+  return map
+}
+
+function buildParentMap(edges) {
+  const map = new Map()
+  for (const edge of edges) {
+    if (edge.type !== 'parent') continue
+    const list = map.get(edge.to) ?? []
+    if (!list.includes(edge.from)) list.push(edge.from)
+    map.set(edge.to, list)
+  }
+  return map
+}
+
+function collectDescendants(rootId, childrenMap) {
+  const hidden = new Set()
+  const queue = [...(childrenMap.get(rootId) ?? [])]
+  while (queue.length) {
+    const id = queue.shift()
+    if (hidden.has(id)) continue
+    hidden.add(id)
+    for (const childId of childrenMap.get(id) ?? []) queue.push(childId)
+  }
+  return hidden
+}
+
+function applyCollapsedFilter(graph, collapsedIds) {
+  if (!collapsedIds.size) return graph
+  const childrenMap = buildChildrenMap(graph.edges)
+  const hidden = new Set()
+  for (const id of collapsedIds) {
+    for (const d of collectDescendants(id, childrenMap)) hidden.add(d)
+  }
+  const visibleIds = new Set(graph.nodes.filter((n) => !hidden.has(n.id)).map((n) => n.id))
+  return {
+    focus_id: graph.focus_id,
+    nodes: graph.nodes.filter((n) => visibleIds.has(n.id)),
+    edges: graph.edges.filter((e) => visibleIds.has(e.from) && visibleIds.has(e.to)),
+  }
+}
+
+function pruneCollapsedIds() {
+  if (!state.graph) return
+  const ids = new Set(state.graph.nodes.map((n) => n.id))
+  for (const id of state.collapsedIds) {
+    if (!ids.has(id)) state.collapsedIds.delete(id)
+  }
+}
+
+/** 展开 personId 及其所有祖先，确保新加/关联成员不被 collapsed 过滤掉 */
+function revealPersonInTree(personId) {
+  if (!state.graph) return
+  state.collapsedIds.delete(personId)
+  const parentMap = buildParentMap(state.graph.edges)
+  const queue = [personId]
+  const seen = new Set()
+  while (queue.length) {
+    const id = queue.shift()
+    if (seen.has(id)) continue
+    seen.add(id)
+    state.collapsedIds.delete(id)
+    for (const parentId of parentMap.get(id) ?? []) {
+      state.collapsedIds.delete(parentId)
+      queue.push(parentId)
+    }
+  }
+}
+
+function toggleCollapse(personId) {
+  if (state.collapsedIds.has(personId)) state.collapsedIds.delete(personId)
+  else state.collapsedIds.add(personId)
+  renderGraph()
+}
+
+function expandAll() {
+  state.collapsedIds.clear()
+  renderGraph()
+}
+
+function collapseAll() {
+  if (!state.graph) return
+  const childrenMap = buildChildrenMap(state.graph.edges)
+  const keepUncollapsed = new Set([state.graph.focus_id])
+  for (const edge of state.graph.edges) {
+    if (edge.type !== 'spouse') continue
+    if (edge.from === state.graph.focus_id || edge.to === state.graph.focus_id) {
+      keepUncollapsed.add(edge.from)
+      keepUncollapsed.add(edge.to)
+    }
+  }
+  state.collapsedIds.clear()
+  for (const [id, children] of childrenMap) {
+    if (children.length > 0 && !keepUncollapsed.has(id)) state.collapsedIds.add(id)
+  }
+  renderGraph()
 }
 
 function layoutGraph(graph) {
+  const nodes = graph.nodes ?? []
+  const edges = graph.edges ?? []
+  const spouseEdges = edges.filter((e) => e.type === 'spouse')
+
   const g = new dagre.graphlib.Graph()
-  g.setGraph({ rankdir: 'TB', nodesep: 56, ranksep: 72, marginx: 40, marginy: 40 })
+  g.setGraph({ rankdir: 'TB', nodesep: 56, ranksep: NODE_H + NODE_GAP, marginx: 40, marginy: 40 })
   g.setDefaultEdgeLabel(() => ({}))
 
-  for (const node of graph.nodes) {
+  for (const node of nodes) {
     g.setNode(String(node.id), { width: NODE_W, height: NODE_H, person: node })
   }
 
-  for (const edge of graph.edges) {
+  // ponytail: 配偶边不参与 dagre 层级布局；无父子边的配偶（如吴兴）靠同层打包定位
+  for (const edge of edges) {
     if (edge.type === 'parent') {
       g.setEdge(String(edge.from), String(edge.to), { edgeType: 'parent' })
-    } else if (edge.type === 'spouse') {
-      const from = String(edge.from)
-      const to = String(edge.to)
-      if (!g.hasEdge(from, to) && !g.hasEdge(to, from)) {
-        g.setEdge(from, to, { edgeType: 'spouse', minlen: 0, weight: 2 })
-      }
     }
   }
 
   dagre.layout(g)
 
   const positions = new Map()
-  g.nodes().forEach((id) => {
-    const n = g.node(id)
-    positions.set(Number(id), { x: n.x, y: n.y, person: n.person })
-  })
+  const nodeIds = g.nodes()
+  if (nodeIds) {
+    nodeIds.forEach((id) => {
+      const n = g.node(id)
+      if (!n) return
+      positions.set(Number(id), { x: n.x, y: n.y, person: n.person })
+    })
+  }
 
-  const spouseEdges = graph.edges.filter((e) => e.type === 'spouse')
+  anchorSpousesToPartners(positions, spouseEdges, edges.filter((e) => e.type === 'parent'))
+  const layers = groupNodesByLayer(positions)
+  for (const layer of layers) {
+    packLayer(positions, buildLayerUnits(layer.ids, spouseEdges, positions))
+  }
+  resolveLayerOverlaps(positions)
+
+  return { positions, spouseEdges, parentEdges: edges.filter((e) => e.type === 'parent') }
+}
+
+/** 配偶与伴侣同层；优先跟随在树中有父母/子女链的一方，避免无关系配偶把伴侣拽到错误代际 */
+function anchorSpousesToPartners(positions, spouseEdges, parentEdges) {
+  const childIds = new Set(parentEdges.map((e) => e.to))
+  const parentIds = new Set(parentEdges.map((e) => e.from))
+
   for (const edge of spouseEdges) {
     const a = positions.get(edge.from)
     const b = positions.get(edge.to)
     if (!a || !b) continue
-    const avgY = (a.y + b.y) / 2
-    a.y = avgY
-    b.y = avgY
-    const gap = NODE_W + 32
-    const mid = (a.x + b.x) / 2
-    a.x = mid - gap / 2
-    b.x = mid + gap / 2
-    positions.set(edge.from, a)
-    positions.set(edge.to, b)
+
+    let y
+    const aInTree = childIds.has(edge.from) || parentIds.has(edge.from)
+    const bInTree = childIds.has(edge.to) || parentIds.has(edge.to)
+    if (aInTree && !bInTree) y = a.y
+    else if (bInTree && !aInTree) y = b.y
+    else y = Math.max(a.y, b.y)
+
+    a.y = y
+    b.y = y
   }
-
-  resolveOverlaps(positions)
-
-  return { positions, spouseEdges, parentEdges: graph.edges.filter((e) => e.type === 'parent') }
 }
 
-function resolveOverlaps(positions) {
-  const ids = [...positions.keys()]
-  for (let iter = 0; iter < 16; iter++) {
+function groupNodesByLayer(positions) {
+  const layers = []
+  for (const [id, pos] of positions) {
+    let layer = layers.find((l) => Math.abs(l.y - pos.y) < LAYER_Y_TOLERANCE)
+    if (!layer) {
+      layer = { y: pos.y, ids: [] }
+      layers.push(layer)
+    }
+    layer.ids.push(id)
+    layer.y = layer.ids.reduce((s, i) => s + positions.get(i).y, 0) / layer.ids.length
+  }
+  for (const layer of layers) {
+    for (const id of layer.ids) {
+      const p = positions.get(id)
+      p.y = layer.y
+      positions.set(id, p)
+    }
+  }
+  return layers
+}
+
+function buildLayerUnits(layerIds, spouseEdges, positions) {
+  const inLayer = new Set(layerIds)
+  const partnerOf = new Map()
+  for (const e of spouseEdges) {
+    if (inLayer.has(e.from) && inLayer.has(e.to)) {
+      partnerOf.set(e.from, e.to)
+      partnerOf.set(e.to, e.from)
+    }
+  }
+
+  const used = new Set()
+  const units = []
+  const sorted = [...layerIds].sort((a, b) => positions.get(a).x - positions.get(b).x)
+
+  for (const id of sorted) {
+    if (used.has(id)) continue
+    const partner = partnerOf.get(id)
+    if (partner != null && !used.has(partner)) {
+      const [left, right] = [id, partner].sort((a, b) => positions.get(a).x - positions.get(b).x)
+      units.push({ ids: [left, right], width: NODE_W * 2 + SPOUSE_GAP })
+      used.add(left)
+      used.add(right)
+    } else {
+      units.push({ ids: [id], width: NODE_W })
+      used.add(id)
+    }
+  }
+  return units
+}
+
+/** 同层按单元（单人 / 配偶对）水平打包，避免配偶对齐后压住兄弟姐妹 */
+function packLayer(positions, units) {
+  if (units.length === 0) return
+
+  const totalWidth =
+    units.reduce((s, u) => s + u.width, 0) + Math.max(0, units.length - 1) * NODE_GAP
+  const avgX =
+    units.reduce((s, u) => {
+      const cx = u.ids.reduce((ss, id) => ss + positions.get(id).x, 0) / u.ids.length
+      return s + cx
+    }, 0) / units.length
+
+  let cursor = avgX - totalWidth / 2
+
+  for (const unit of units) {
+    if (unit.ids.length === 2) {
+      const [left, right] = unit.ids
+      positions.get(left).x = cursor + NODE_W / 2
+      positions.get(right).x = cursor + NODE_W + SPOUSE_GAP + NODE_W / 2
+    } else {
+      positions.get(unit.ids[0]).x = cursor + NODE_W / 2
+    }
+    cursor += unit.width + NODE_GAP
+  }
+}
+
+/** 同层内仅水平推开，不破坏代际 y */
+function resolveLayerOverlaps(positions) {
+  for (let iter = 0; iter < 12; iter++) {
     let moved = false
-    for (let i = 0; i < ids.length; i++) {
-      for (let j = i + 1; j < ids.length; j++) {
-        const idA = ids[i]
-        const idB = ids[j]
-        const a = positions.get(idA)
-        const b = positions.get(idB)
-        const dx = b.x - a.x
-        const dy = b.y - a.y
-        const overlapX = NODE_W + NODE_GAP - Math.abs(dx)
-        const overlapY = NODE_H + NODE_GAP - Math.abs(dy)
-        if (overlapX > 0 && overlapY > 0) {
-          if (overlapX <= overlapY) {
-            const shift = overlapX / 2 + 1
-            a.x -= dx >= 0 ? shift : -shift
-            b.x += dx >= 0 ? shift : -shift
-          } else {
-            const shift = overlapY / 2 + 1
-            a.y -= dy >= 0 ? shift : -shift
-            b.y += dy >= 0 ? shift : -shift
-          }
-          positions.set(idA, a)
-          positions.set(idB, b)
+    for (const layer of groupNodesByLayer(positions)) {
+      const ids = [...layer.ids].sort((a, b) => positions.get(a).x - positions.get(b).x)
+      for (let j = 1; j < ids.length; j++) {
+        const left = positions.get(ids[j - 1])
+        const right = positions.get(ids[j])
+        const need = NODE_W + NODE_GAP
+        const gap = right.x - left.x
+        if (gap < need) {
+          const shift = (need - gap) / 2 + 1
+          left.x -= shift
+          right.x += shift
           moved = true
         }
       }
@@ -437,7 +644,11 @@ function renderGraph() {
 
   if (!state.graph || state.graph.nodes.length === 0) return
 
-  const { positions, spouseEdges, parentEdges } = layoutGraph(state.graph)
+  pruneCollapsedIds()
+  const visibleGraph = applyCollapsedFilter(state.graph, state.collapsedIds)
+  const fullChildrenMap = buildChildrenMap(state.graph.edges)
+
+  const { positions, spouseEdges, parentEdges } = layoutGraph(visibleGraph)
 
   const edgesG = gZoom.append('g').attr('class', 'ft-edges')
 
@@ -467,10 +678,11 @@ function renderGraph() {
 
   const nodesG = gZoom
     .selectAll('.ft-node')
-    .data(state.graph.nodes)
+    .data(visibleGraph.nodes)
     .join('g')
     .attr('class', (d) => {
       let cls = 'ft-node'
+      if (state.collapsedIds.has(d.id)) cls += ' ft-node--collapsed'
       if (d.id === state.selectedId) cls += ' ft-node--selected'
       if (d.id === state.highlightId) cls += ' ft-node--highlight'
       return cls
@@ -582,6 +794,50 @@ function renderGraph() {
       if (d.death_date) return `— ${d.death_date}`
       return ''
     })
+
+  nodesG.each(function (d) {
+    const childCount = (fullChildrenMap.get(d.id) ?? []).length
+    if (childCount === 0) return
+
+    const collapsed = state.collapsedIds.has(d.id)
+    const g = d3.select(this)
+    const toggleG = g
+      .append('g')
+      .attr('class', `ft-node-toggle${collapsed ? ' ft-node-toggle--collapsed' : ''}`)
+      .attr('transform', `translate(${NODE_W / 2}, ${NODE_H + 4})`)
+      .style('cursor', 'pointer')
+
+    toggleG
+      .append('rect')
+      .attr('class', 'ft-node-toggle-bg')
+      .attr('x', -9)
+      .attr('y', -9)
+      .attr('width', 18)
+      .attr('height', 18)
+      .attr('rx', 4)
+
+    toggleG
+      .append('text')
+      .attr('class', 'ft-node-toggle-icon')
+      .attr('y', 1)
+      .text(collapsed ? '▶' : '▼')
+
+    if (collapsed) {
+      toggleG
+        .append('text')
+        .attr('class', 'ft-node-collapse-badge')
+        .attr('x', 14)
+        .attr('y', 1)
+        .text(String(childCount))
+    }
+
+    toggleG.on('click', (event) => {
+      event.stopPropagation()
+      toggleCollapse(d.id)
+    })
+    toggleG.on('pointerdown', (event) => event.stopPropagation())
+    toggleG.on('pointerup', (event) => event.stopPropagation())
+  })
 }
 
 function fitView() {
@@ -754,7 +1010,7 @@ async function savePerson(e) {
     setMsg(el.panelMsg, '已保存', 'ok')
     await loadPersons()
     refreshFocusSelect()
-    await loadTree()
+    await loadTree({ revealId: id })
     await selectPerson(id, { openDrawer: false })
     if (isMobile()) closePanel()
   } catch (err) {
@@ -844,9 +1100,9 @@ async function createPerson(e) {
     el.addDialog.close()
     resetAddDraft()
     await loadPersons()
-    state.focusId = newId
+    state.focusId = relType && relatedId ? relatedId : newId
     refreshFocusSelect()
-    await loadTree()
+    await loadTree({ revealId: newId })
     await selectPerson(newId)
   } catch (err) {
     setMsg(el.addMsg, err.message, 'error')
@@ -883,6 +1139,8 @@ function setupEvents() {
     d3.select(el.svg).transition().duration(200).call(zoomBehavior.scaleBy, 0.8)
   })
   document.getElementById('ft-fit-btn').addEventListener('click', fitView)
+  document.getElementById('ft-expand-all')?.addEventListener('click', expandAll)
+  document.getElementById('ft-collapse-all')?.addEventListener('click', collapseAll)
 
   document.getElementById('ft-add-btn').addEventListener('click', () => openAddDialog())
   document.getElementById('ft-edit-btn')?.addEventListener('click', () => openEditorForSelection())

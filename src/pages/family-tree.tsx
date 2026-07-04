@@ -51,6 +51,12 @@ export function FamilyTreePage() {
           <button type="button" id="ft-fit-btn" class="btn-pill btn-pill--sand">
             适应屏幕
           </button>
+          <button type="button" id="ft-expand-all" class="btn-pill btn-pill--sand">
+            全部展开
+          </button>
+          <button type="button" id="ft-collapse-all" class="btn-pill btn-pill--sand">
+            全部收起
+          </button>
         </div>
       </header>
 

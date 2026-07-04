@@ -17,5 +17,19 @@
       "database_id": "2ab186a0-8f06-480c-8c55-8be336086ce5",
       "migrations_dir": "migrations"
     }
-  ]
+  ],
+  // 本地 dev 连线上 D1：pnpm run dev:remote（vite --mode dev-remote）
+  "env": {
+    "dev-remote": {
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "cf-page-db",
+          "database_id": "2ab186a0-8f06-480c-8c55-8be336086ce5",
+          "migrations_dir": "migrations",
+          "remote": true
+        }
+      ]
+    }
+  }
 }

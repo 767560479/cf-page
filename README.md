@@ -34,11 +34,14 @@ npm run cf-typegen
 # 安装依赖（网络不稳时推荐 pnpm install）
 pnpm install
 
-# 本地 D1 建表
+# 本地 D1 建表（默认 dev 用本地库时执行）
 pnpm run db:migrate:local
 
-# 启动开发服务器（热更新）
+# 启动开发服务器（热更新，默认连本地 D1）
 pnpm run dev
+
+# 连线上 D1 开发（需 wrangler login；读写会影响线上数据）
+pnpm run dev:remote
 
 # 完整 KV/D1 绑定验证（需先 build）
 pnpm run build
@@ -54,7 +57,7 @@ pnpm exec wrangler pages dev dist --port 8788
 | `/lab` | KV / D1 实验室 |
 | `/codex` | Codex 概念展示页 |
 
-> **家族树**依赖 D1。`pnpm run dev` 使用 Cloudflare 本地适配器，需先执行 `pnpm run db:migrate:local`。若 API 无数据，可用 `pnpm run build` + `pnpm exec wrangler pages dev dist` 验证完整绑定。
+> **家族树**依赖 D1。默认 `pnpm run dev` 使用**本地 D1**，需先 `pnpm run db:migrate:local`。若要用**线上库**调试，执行 `pnpm run dev:remote`（配置见 `wrangler.jsonc` → `env.dev-remote`，D1 绑定 `remote: true`）。若 API 无数据，可用 `pnpm run build` + `pnpm exec wrangler pages dev dist` 验证完整绑定。
 
 ## 家族树
 
@@ -193,7 +196,8 @@ app.route('/my-idea', myIdea)
 
 | 命令 | 说明 |
 |------|------|
-| `npm run dev` | 本地开发 |
+| `npm run dev` | 本地开发（本地 D1） |
+| `npm run dev:remote` | 本地开发（连线上 D1，需 `wrangler login`） |
 | `npm run build` | 构建到 `dist/` |
 | `npm run preview` | 用 wrangler 预览构建产物 |
 | `npm run deploy` | 部署到 Cloudflare Pages |

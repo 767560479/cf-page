@@ -156,6 +156,49 @@ body:has(.ft-page) .site-nav {
   letter-spacing: 0.04em;
 }
 
+.ft-node--collapsed .ft-node-card {
+  stroke-dasharray: 4 3;
+}
+
+.ft-node-toggle {
+  pointer-events: all;
+}
+
+.ft-node-toggle-bg {
+  fill: var(--surface-white);
+  stroke: var(--color-muted-gray);
+  stroke-width: 1;
+}
+
+.ft-node-toggle:hover .ft-node-toggle-bg {
+  fill: var(--surface-stone);
+  stroke: var(--color-heading-charcoal);
+}
+
+.ft-node-toggle--collapsed .ft-node-toggle-bg {
+  fill: var(--surface-stone);
+  stroke: var(--color-link-blue);
+}
+
+.ft-node-toggle-icon {
+  fill: var(--color-heading-charcoal);
+  font-size: 10px;
+  font-family: var(--font-inter);
+  text-anchor: middle;
+  dominant-baseline: central;
+  pointer-events: none;
+}
+
+.ft-node-collapse-badge {
+  fill: var(--color-link-blue);
+  font-size: 9px;
+  font-weight: 600;
+  font-family: var(--font-inter);
+  text-anchor: start;
+  dominant-baseline: central;
+  pointer-events: none;
+}
+
 .relations-fieldset label {
   margin-top: 12px;
 }

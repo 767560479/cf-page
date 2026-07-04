@@ -4,6 +4,7 @@
   "scripts": {
     "build:client": "esbuild src/client/family-tree.ts --bundle --format=esm --outfile=public/static/family-tree.js --platform=browser --target=es2020",
     "dev": "pnpm run build:client && vite",
+    "dev:remote": "pnpm run build:client && vite --mode dev-remote",
     "build": "pnpm run build:client && vite build",
     "preview": "wrangler pages dev dist",
     "deploy": "npm run build && wrangler pages deploy dist",
@@ -22,7 +23,7 @@
     "@hono/vite-dev-server": "^0.25.2",
     "esbuild": "^0.28.1",
     "vite": "^6.3.5",
-    "wrangler": "^4.4.0"
+    "wrangler": "^4.107.0"
   },
   "pnpm": {
     "onlyBuiltDependencies": [
