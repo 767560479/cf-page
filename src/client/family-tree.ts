@@ -5,6 +5,16 @@ const NODE_W = 136
 const NODE_H = 72
 const API = '/api/family'
 
+const GENDER_STYLE = {
+  male: { fill: 'rgba(100,198,255,0.35)', stroke: '#64c6ff', avatar: '#64c6ff', dot: '#64c6ff' },
+  female: { fill: 'rgba(255,88,174,0.28)', stroke: '#ff58ae', avatar: '#ff58ae', dot: '#ff58ae' },
+  unknown: { fill: '#ffffff', stroke: '#f2f0ed', avatar: '#f2f0ed', dot: null },
+}
+
+function genderStyle(gender) {
+  return GENDER_STYLE[gender] ?? GENDER_STYLE.unknown
+}
+
 const state = {
   persons: [],
   focusId: null,
@@ -15,7 +25,7 @@ const state = {
   zoomScale: 1,
 }
 
-const MOBILE_MQ = window.matchMedia('(max-width: 900px)')
+const MOBILE_MQ = window.matchMedia('(max-width: 1024px), (pointer: coarse)')
 
 const el = {
   svg: document.getElementById('ft-svg'),
@@ -56,7 +66,6 @@ const el = {
 let gRoot
 let gZoom
 let zoomBehavior
-let touchStart = null
 
 function isMobile() {
   return MOBILE_MQ.matches
@@ -117,9 +126,22 @@ function fillPersonSelect(select, persons, selectedId, excludeId, emptyLabel = '
   }
 }
 
+function setEmptyState(visible, message = '', showAddBtn = true) {
+  if (!el.empty) return
+  el.empty.hidden = !visible
+  if (visible && message) {
+    el.empty.querySelector('p').textContent = message
+  }
+  const addBtn = document.getElementById('ft-empty-add')
+  if (addBtn) addBtn.hidden = !showAddBtn
+}
+
 async function loadPersons() {
   const data = await api('/persons')
   state.persons = data.persons ?? []
+  if (state.persons.length > 0) {
+    setEmptyState(false)
+  }
   return state.persons
 }
 
@@ -147,16 +169,29 @@ function refreshFocusSelect() {
 }
 
 async function loadTree() {
+  if (!state.focusId && state.persons.length > 0) {
+    refreshFocusSelect()
+  }
   if (!state.focusId) {
     state.graph = null
-    el.empty.hidden = false
     renderGraph()
+    if (state.persons.length === 0) {
+      setEmptyState(true, '还没有家族成员，点击下方按钮添加第一位祖先')
+    } else {
+      setEmptyState(true, '无法确定焦点成员', false)
+    }
     return
   }
-  el.empty.hidden = true
+  setEmptyState(false)
   const up = Number(el.genUp.value) || 3
   const down = Number(el.genDown.value) || 3
   state.graph = await api(`/tree?focus=${state.focusId}&up=${up}&down=${down}`)
+  if (!state.graph.nodes || state.graph.nodes.length === 0) {
+    setEmptyState(true, '暂无可见节点，请切换焦点或添加关系', false)
+    renderGraph()
+    return
+  }
+  setEmptyState(false)
   renderGraph()
   fitView()
 }
@@ -298,23 +333,11 @@ function renderGraph() {
       if (!pos) return 'translate(0,0)'
       return `translate(${pos.x - NODE_W / 2},${pos.y - NODE_H / 2})`
     })
-    .on('click', (_, d) => {
+    .style('touch-action', 'manipulation')
+    .on('pointerup', (event, d) => {
+      if (event.pointerType === 'mouse' && event.button !== 0) return
+      event.stopPropagation()
       selectPerson(d.id)
-    })
-    .on('touchstart', (event, d) => {
-      const t = event.touches[0]
-      touchStart = { x: t.clientX, y: t.clientY, id: d.id }
-    })
-    .on('touchend', (event, d) => {
-      if (!touchStart || touchStart.id !== d.id) return
-      const t = event.changedTouches[0]
-      const dx = t.clientX - touchStart.x
-      const dy = t.clientY - touchStart.y
-      if (dx * dx + dy * dy < 100) {
-        event.preventDefault()
-        selectPerson(d.id)
-      }
-      touchStart = null
     })
 
   nodesG
@@ -347,9 +370,19 @@ function renderGraph() {
     .attr('width', NODE_W)
     .attr('height', NODE_H)
     .attr('rx', 8)
+    .attr('fill', (d) => genderStyle(d.gender).fill)
+    .attr('stroke', (d) => {
+      if (d.id === state.selectedId) return '#ff3e00'
+      if (d.id === state.highlightId) return '#00c978'
+      return genderStyle(d.gender).stroke
+    })
+    .attr('stroke-width', (d) =>
+      d.id === state.selectedId || d.id === state.highlightId ? 3 : 2
+    )
 
   nodesG.each(function (d) {
     const g = d3.select(this)
+    const gs = genderStyle(d.gender)
     if (d.avatar_url) {
       g.append('image')
         .attr('href', d.avatar_url)
@@ -362,25 +395,31 @@ function renderGraph() {
       let avatarCls = 'ft-node-avatar-bg'
       if (d.gender === 'male') avatarCls += ' ft-node-avatar-bg--male'
       if (d.gender === 'female') avatarCls += ' ft-node-avatar-bg--female'
-      g.append('circle').attr('class', avatarCls).attr('cx', 26).attr('cy', 28).attr('r', 18)
+      g.append('circle')
+        .attr('class', avatarCls)
+        .attr('cx', 26)
+        .attr('cy', 28)
+        .attr('r', 18)
+        .attr('fill', gs.avatar)
       let textCls = 'ft-node-avatar-text'
       if (d.gender === 'male' || d.gender === 'female') textCls += ' ft-node-avatar-text--on-color'
       g.append('text')
         .attr('class', textCls)
         .attr('x', 26)
         .attr('y', 28)
+        .attr('fill', d.gender === 'male' || d.gender === 'female' ? '#ffffff' : null)
         .text(d.name.charAt(0))
     }
   })
 
   nodesG
-    .filter((d) => d.gender === 'male' || d.gender === 'female')
+    .filter((d) => genderStyle(d.gender).dot)
     .append('circle')
     .attr('class', 'ft-node-gender-dot')
     .attr('cx', NODE_W - 12)
     .attr('cy', 12)
     .attr('r', 4)
-    .attr('fill', (d) => (d.gender === 'male' ? '#64c6ff' : '#ff58ae'))
+    .attr('fill', (d) => genderStyle(d.gender).dot)
 
   nodesG
     .append('text')
@@ -436,6 +475,15 @@ function centerOnNode(nodeId) {
     zoomBehavior.transform,
     d3.zoomIdentity.translate(tx, ty).scale(scale)
   )
+}
+
+async function openEditorForSelection() {
+  const id = state.selectedId ?? state.focusId
+  if (!id) {
+    window.alert('请先点击节点或设置焦点')
+    return
+  }
+  await selectPerson(id)
 }
 
 async function selectPerson(id) {
@@ -660,6 +708,7 @@ function setupEvents() {
   document.getElementById('ft-fit-btn').addEventListener('click', fitView)
 
   document.getElementById('ft-add-btn').addEventListener('click', () => openAddDialog())
+  document.getElementById('ft-edit-btn')?.addEventListener('click', () => openEditorForSelection())
   document.getElementById('ft-empty-add').addEventListener('click', () => openAddDialog())
   document.getElementById('ft-add-cancel').addEventListener('click', () => el.addDialog.close())
 
@@ -689,10 +738,7 @@ function setupEvents() {
 }
 
 function showEmpty(message, showAddButton = true) {
-  el.empty.hidden = false
-  el.empty.querySelector('p').textContent = message
-  const addBtn = document.getElementById('ft-empty-add')
-  if (addBtn) addBtn.hidden = !showAddButton
+  setEmptyState(true, message, showAddButton)
 }
 
 async function init() {

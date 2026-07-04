@@ -638,7 +638,7 @@ a.feature-card:hover {
   display: none;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 1024px), (pointer: coarse) {
   .page-toolbar {
     position: sticky;
     top: 57px;
@@ -784,6 +784,14 @@ a.feature-card:hover {
   padding: var(--spacing-96);
   color: var(--color-muted-gray);
   text-align: center;
+}
+
+.ft-canvas-wrap .empty-state {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  padding: var(--spacing-24);
+  background: var(--surface-stone);
 }
 
 .relations-fieldset {

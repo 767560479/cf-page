@@ -14,14 +14,14 @@
   touch-action: none;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 1024px), (pointer: coarse) {
   .ft-canvas-wrap {
-    min-height: 55vh;
+    min-height: 50dvh;
   }
 
   .ft-svg {
-    height: 55vh;
-    min-height: 260px;
+    height: 50dvh;
+    min-height: 280px;
   }
 }
 
@@ -45,6 +45,7 @@
 
 .ft-node {
   cursor: pointer;
+  touch-action: manipulation;
 }
 
 .ft-node--selected .ft-node-card {
@@ -64,13 +65,13 @@
 }
 
 .ft-node-card--male {
-  fill: rgba(100, 198, 255, 0.18);
+  fill: rgba(100, 198, 255, 0.35);
   stroke: var(--color-sky-blue);
   stroke-width: 2;
 }
 
 .ft-node-card--female {
-  fill: rgba(255, 88, 174, 0.14);
+  fill: rgba(255, 88, 174, 0.28);
   stroke: var(--color-coral-pink);
   stroke-width: 2;
 }
@@ -141,4 +142,28 @@
 
 .relations-fieldset label:first-of-type {
   margin-top: 0;
+}
+
+.ft-mobile-hint {
+  display: none;
+}
+
+.ft-edit-btn {
+  display: none;
+}
+
+@media (max-width: 1024px), (pointer: coarse) {
+  .ft-mobile-hint {
+    display: block;
+    margin: 0;
+    padding: var(--spacing-8) var(--spacing-16);
+    font-size: var(--text-micro);
+    color: var(--color-muted-gray);
+    text-align: center;
+    background: var(--surface-stone);
+  }
+
+  .ft-edit-btn {
+    display: inline-flex;
+  }
 }

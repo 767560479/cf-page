@@ -32,6 +32,9 @@ export function FamilyTreePage() {
           <input id="ft-search" type="search" placeholder="搜索姓名…" class="toolbar-field" style="width:100%;max-width:200px;padding:6px 10px;border:none;border-radius:6px;box-shadow:inset 0 0 0 1px var(--color-stone-surface);background:var(--surface-white);" />
         </div>
         <div class="page-toolbar__group page-toolbar__group--compact">
+          <button type="button" id="ft-edit-btn" class="btn-pill btn-pill--sand ft-edit-btn">
+            编辑成员
+          </button>
           <button type="button" id="ft-add-btn" class="btn-pill btn-pill--dark">
             + 添加成员
           </button>
@@ -59,6 +62,9 @@ export function FamilyTreePage() {
             </button>
           </div>
           <svg id="ft-svg" class="ft-svg" aria-label="家族树画布"></svg>
+          <p id="ft-mobile-hint" class="ft-mobile-hint">
+            点击节点或按「编辑成员」查看详情
+          </p>
         </div>
 
         <div id="ft-panel-backdrop" class="ft-panel-backdrop" hidden aria-hidden="true"></div>

@@ -4433,6 +4433,14 @@ var To = sr;
 var NODE_W = 136;
 var NODE_H = 72;
 var API = "/api/family";
+var GENDER_STYLE = {
+  male: { fill: "rgba(100,198,255,0.35)", stroke: "#64c6ff", avatar: "#64c6ff", dot: "#64c6ff" },
+  female: { fill: "rgba(255,88,174,0.28)", stroke: "#ff58ae", avatar: "#ff58ae", dot: "#ff58ae" },
+  unknown: { fill: "#ffffff", stroke: "#f2f0ed", avatar: "#f2f0ed", dot: null }
+};
+function genderStyle(gender) {
+  return GENDER_STYLE[gender] ?? GENDER_STYLE.unknown;
+}
 var state = {
   persons: [],
   focusId: null,
@@ -4442,7 +4450,7 @@ var state = {
   zoomTransform: identity2,
   zoomScale: 1
 };
-var MOBILE_MQ = window.matchMedia("(max-width: 900px)");
+var MOBILE_MQ = window.matchMedia("(max-width: 1024px), (pointer: coarse)");
 var el = {
   svg: document.getElementById("ft-svg"),
   empty: document.getElementById("ft-empty"),
@@ -4481,7 +4489,6 @@ var el = {
 var gRoot;
 var gZoom;
 var zoomBehavior;
-var touchStart = null;
 function isMobile() {
   return MOBILE_MQ.matches;
 }
@@ -4533,9 +4540,21 @@ function fillPersonSelect(select, persons, selectedId, excludeId, emptyLabel = "
     select.appendChild(opt);
   }
 }
+function setEmptyState(visible, message = "", showAddBtn = true) {
+  if (!el.empty) return;
+  el.empty.hidden = !visible;
+  if (visible && message) {
+    el.empty.querySelector("p").textContent = message;
+  }
+  const addBtn = document.getElementById("ft-empty-add");
+  if (addBtn) addBtn.hidden = !showAddBtn;
+}
 async function loadPersons() {
   const data = await api("/persons");
   state.persons = data.persons ?? [];
+  if (state.persons.length > 0) {
+    setEmptyState(false);
+  }
   return state.persons;
 }
 function refreshFocusSelect() {
@@ -4561,16 +4580,29 @@ function refreshFocusSelect() {
   updateFocusBadge();
 }
 async function loadTree() {
+  if (!state.focusId && state.persons.length > 0) {
+    refreshFocusSelect();
+  }
   if (!state.focusId) {
     state.graph = null;
-    el.empty.hidden = false;
     renderGraph();
+    if (state.persons.length === 0) {
+      setEmptyState(true, "\u8FD8\u6CA1\u6709\u5BB6\u65CF\u6210\u5458\uFF0C\u70B9\u51FB\u4E0B\u65B9\u6309\u94AE\u6DFB\u52A0\u7B2C\u4E00\u4F4D\u7956\u5148");
+    } else {
+      setEmptyState(true, "\u65E0\u6CD5\u786E\u5B9A\u7126\u70B9\u6210\u5458", false);
+    }
     return;
   }
-  el.empty.hidden = true;
+  setEmptyState(false);
   const up = Number(el.genUp.value) || 3;
   const down = Number(el.genDown.value) || 3;
   state.graph = await api(`/tree?focus=${state.focusId}&up=${up}&down=${down}`);
+  if (!state.graph.nodes || state.graph.nodes.length === 0) {
+    setEmptyState(true, "\u6682\u65E0\u53EF\u89C1\u8282\u70B9\uFF0C\u8BF7\u5207\u6362\u7126\u70B9\u6216\u6DFB\u52A0\u5173\u7CFB", false);
+    renderGraph();
+    return;
+  }
+  setEmptyState(false);
   renderGraph();
   fitView();
 }
@@ -4670,21 +4702,10 @@ function renderGraph() {
     const pos = positions.get(d.id);
     if (!pos) return "translate(0,0)";
     return `translate(${pos.x - NODE_W / 2},${pos.y - NODE_H / 2})`;
-  }).on("click", (_2, d) => {
+  }).style("touch-action", "manipulation").on("pointerup", (event, d) => {
+    if (event.pointerType === "mouse" && event.button !== 0) return;
+    event.stopPropagation();
     selectPerson(d.id);
-  }).on("touchstart", (event, d) => {
-    const t = event.touches[0];
-    touchStart = { x: t.clientX, y: t.clientY, id: d.id };
-  }).on("touchend", (event, d) => {
-    if (!touchStart || touchStart.id !== d.id) return;
-    const t = event.changedTouches[0];
-    const dx = t.clientX - touchStart.x;
-    const dy = t.clientY - touchStart.y;
-    if (dx * dx + dy * dy < 100) {
-      event.preventDefault();
-      selectPerson(d.id);
-    }
-    touchStart = null;
   });
   nodesG.filter((d) => d.id === state.graph.focus_id).append("text").attr("class", "ft-node-focus-label").attr("x", NODE_W / 2).attr("y", -6).text("\u7126\u70B9");
   nodesG.filter((d) => d.id === state.graph.focus_id).append("rect").attr("class", "ft-node-focus-ring").attr("x", -4).attr("y", -4).attr("width", NODE_W + 8).attr("height", NODE_H + 8).attr("rx", 10).attr("pointer-events", "none");
@@ -4693,22 +4714,30 @@ function renderGraph() {
     if (d.gender === "male") c += " ft-node-card--male";
     if (d.gender === "female") c += " ft-node-card--female";
     return c;
-  }).attr("width", NODE_W).attr("height", NODE_H).attr("rx", 8);
+  }).attr("width", NODE_W).attr("height", NODE_H).attr("rx", 8).attr("fill", (d) => genderStyle(d.gender).fill).attr("stroke", (d) => {
+    if (d.id === state.selectedId) return "#ff3e00";
+    if (d.id === state.highlightId) return "#00c978";
+    return genderStyle(d.gender).stroke;
+  }).attr(
+    "stroke-width",
+    (d) => d.id === state.selectedId || d.id === state.highlightId ? 3 : 2
+  );
   nodesG.each(function(d) {
     const g = select_default2(this);
+    const gs = genderStyle(d.gender);
     if (d.avatar_url) {
       g.append("image").attr("href", d.avatar_url).attr("x", 8).attr("y", 10).attr("width", 36).attr("height", 36).attr("clip-path", "inset(0 round 18px)");
     } else {
       let avatarCls = "ft-node-avatar-bg";
       if (d.gender === "male") avatarCls += " ft-node-avatar-bg--male";
       if (d.gender === "female") avatarCls += " ft-node-avatar-bg--female";
-      g.append("circle").attr("class", avatarCls).attr("cx", 26).attr("cy", 28).attr("r", 18);
+      g.append("circle").attr("class", avatarCls).attr("cx", 26).attr("cy", 28).attr("r", 18).attr("fill", gs.avatar);
       let textCls = "ft-node-avatar-text";
       if (d.gender === "male" || d.gender === "female") textCls += " ft-node-avatar-text--on-color";
-      g.append("text").attr("class", textCls).attr("x", 26).attr("y", 28).text(d.name.charAt(0));
+      g.append("text").attr("class", textCls).attr("x", 26).attr("y", 28).attr("fill", d.gender === "male" || d.gender === "female" ? "#ffffff" : null).text(d.name.charAt(0));
     }
   });
-  nodesG.filter((d) => d.gender === "male" || d.gender === "female").append("circle").attr("class", "ft-node-gender-dot").attr("cx", NODE_W - 12).attr("cy", 12).attr("r", 4).attr("fill", (d) => d.gender === "male" ? "#64c6ff" : "#ff58ae");
+  nodesG.filter((d) => genderStyle(d.gender).dot).append("circle").attr("class", "ft-node-gender-dot").attr("cx", NODE_W - 12).attr("cy", 12).attr("r", 4).attr("fill", (d) => genderStyle(d.gender).dot);
   nodesG.append("text").attr("class", "ft-node-name").attr("x", (d) => d.avatar_url ? 72 : NODE_W / 2).attr("y", 30).text((d) => d.name.length > 8 ? `${d.name.slice(0, 8)}\u2026` : d.name);
   nodesG.append("text").attr("class", "ft-node-dates").attr("x", (d) => d.avatar_url ? 72 : NODE_W / 2).attr("y", 48).text((d) => {
     if (d.birth_date && d.death_date) return `${d.birth_date} \u2014 ${d.death_date}`;
@@ -4750,6 +4779,14 @@ function centerOnNode(nodeId) {
     zoomBehavior.transform,
     identity2.translate(tx, ty).scale(scale)
   );
+}
+async function openEditorForSelection() {
+  const id2 = state.selectedId ?? state.focusId;
+  if (!id2) {
+    window.alert("\u8BF7\u5148\u70B9\u51FB\u8282\u70B9\u6216\u8BBE\u7F6E\u7126\u70B9");
+    return;
+  }
+  await selectPerson(id2);
 }
 async function selectPerson(id2) {
   state.selectedId = id2;
@@ -4953,6 +4990,7 @@ function setupEvents() {
   });
   document.getElementById("ft-fit-btn").addEventListener("click", fitView);
   document.getElementById("ft-add-btn").addEventListener("click", () => openAddDialog());
+  document.getElementById("ft-edit-btn")?.addEventListener("click", () => openEditorForSelection());
   document.getElementById("ft-empty-add").addEventListener("click", () => openAddDialog());
   document.getElementById("ft-add-cancel").addEventListener("click", () => el.addDialog.close());
   el.addRelationType.addEventListener("change", () => {
@@ -4976,10 +5014,7 @@ function setupEvents() {
   });
 }
 function showEmpty(message, showAddButton = true) {
-  el.empty.hidden = false;
-  el.empty.querySelector("p").textContent = message;
-  const addBtn = document.getElementById("ft-empty-add");
-  if (addBtn) addBtn.hidden = !showAddButton;
+  setEmptyState(true, message, showAddButton);
 }
 async function init2() {
   setupEvents();
