@@ -405,12 +405,37 @@ function buildParentMap(edges) {
   return map
 }
 
+function buildParentMapForCollapse(edges, inGraph) {
+  const parentMap = buildParentMap(edges)
+  const spouseOf = new Map()
+  for (const e of edges) {
+    if (e.type !== 'spouse') continue
+    if (!inGraph.has(e.from) || !inGraph.has(e.to)) continue
+    spouseOf.set(e.from, e.to)
+    spouseOf.set(e.to, e.from)
+  }
+
+  for (const [childId, parents] of parentMap) {
+    const expanded = new Set(parents)
+    for (const p of parents) {
+      const spouse = spouseOf.get(p)
+      if (spouse != null && inGraph.has(spouse)) {
+        const spouseAlsoParent = (parentMap.get(childId) ?? []).includes(spouse)
+        if (spouseAlsoParent) expanded.add(spouse)
+        else if (parents.length === 1) expanded.add(spouse)
+      }
+    }
+    parentMap.set(childId, [...expanded])
+  }
+  return parentMap
+}
+
 function computeVisibleIds(graph, collapsedIds) {
   if (!collapsedIds.size) {
     return new Set(graph.nodes.map((n) => n.id))
   }
-  const parentMap = buildParentMap(graph.edges)
   const inGraph = new Set(graph.nodes.map((n) => n.id))
+  const parentMap = buildParentMapForCollapse(graph.edges, inGraph)
   const memo = new Map()
 
   function isVisible(id) {
@@ -419,6 +444,11 @@ function computeVisibleIds(graph, collapsedIds) {
     if (parents.length === 0) {
       memo.set(id, true)
       return true
+    }
+    // 全部父母均收起 → 隐藏该子女（单父母/双父母均适用）
+    if (parents.every((p) => collapsedIds.has(p))) {
+      memo.set(id, false)
+      return false
     }
     const ok = parents.some((p) => isVisible(p) && !collapsedIds.has(p))
     memo.set(id, ok)

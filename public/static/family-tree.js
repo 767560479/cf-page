@@ -4788,12 +4788,35 @@ function buildParentMap(edges) {
   }
   return map;
 }
+function buildParentMapForCollapse(edges, inGraph) {
+  const parentMap = buildParentMap(edges);
+  const spouseOf = /* @__PURE__ */ new Map();
+  for (const e of edges) {
+    if (e.type !== "spouse") continue;
+    if (!inGraph.has(e.from) || !inGraph.has(e.to)) continue;
+    spouseOf.set(e.from, e.to);
+    spouseOf.set(e.to, e.from);
+  }
+  for (const [childId, parents] of parentMap) {
+    const expanded = new Set(parents);
+    for (const p2 of parents) {
+      const spouse = spouseOf.get(p2);
+      if (spouse != null && inGraph.has(spouse)) {
+        const spouseAlsoParent = (parentMap.get(childId) ?? []).includes(spouse);
+        if (spouseAlsoParent) expanded.add(spouse);
+        else if (parents.length === 1) expanded.add(spouse);
+      }
+    }
+    parentMap.set(childId, [...expanded]);
+  }
+  return parentMap;
+}
 function computeVisibleIds(graph, collapsedIds) {
   if (!collapsedIds.size) {
     return new Set(graph.nodes.map((n) => n.id));
   }
-  const parentMap = buildParentMap(graph.edges);
   const inGraph = new Set(graph.nodes.map((n) => n.id));
+  const parentMap = buildParentMapForCollapse(graph.edges, inGraph);
   const memo = /* @__PURE__ */ new Map();
   function isVisible(id2) {
     if (memo.has(id2)) return memo.get(id2);
@@ -4801,6 +4824,10 @@ function computeVisibleIds(graph, collapsedIds) {
     if (parents.length === 0) {
       memo.set(id2, true);
       return true;
+    }
+    if (parents.every((p2) => collapsedIds.has(p2))) {
+      memo.set(id2, false);
+      return false;
     }
     const ok = parents.some((p2) => isVisible(p2) && !collapsedIds.has(p2));
     memo.set(id2, ok);
