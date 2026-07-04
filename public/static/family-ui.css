@@ -652,6 +652,10 @@ a.feature-card:hover {
   color: var(--color-grass-green);
 }
 
+.empty-state[hidden] {
+  display: none !important;
+}
+
 .empty-state {
   display: flex;
   flex-direction: column;

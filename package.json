@@ -2,8 +2,9 @@
   "name": "cf-page",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
+    "build:client": "esbuild src/client/family-tree.ts --bundle --format=esm --outfile=public/static/family-tree.js --platform=browser --target=es2020",
+    "dev": "pnpm run build:client && vite",
+    "build": "pnpm run build:client && vite build",
     "preview": "wrangler pages dev dist",
     "deploy": "npm run build && wrangler pages deploy dist",
     "cf-typegen": "wrangler types --env-interface CloudflareBindings",
@@ -11,15 +12,23 @@
     "db:migrate:remote": "wrangler d1 migrations apply cf-page-db --remote"
   },
   "dependencies": {
+    "@dagrejs/dagre": "^3.0.0",
+    "@types/d3": "^7.4.3",
+    "d3": "^7.9.0",
     "hono": "^4.12.27"
   },
   "devDependencies": {
     "@hono/vite-build": "^1.2.0",
     "@hono/vite-dev-server": "^0.25.2",
+    "esbuild": "^0.28.1",
     "vite": "^6.3.5",
     "wrangler": "^4.4.0"
   },
   "pnpm": {
-    "onlyBuiltDependencies": ["esbuild", "workerd", "sharp"]
+    "onlyBuiltDependencies": [
+      "esbuild",
+      "workerd",
+      "sharp"
+    ]
   }
 }
