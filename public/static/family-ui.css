@@ -641,7 +641,7 @@ a.feature-card:hover {
 @media (max-width: 1024px), (pointer: coarse) {
   .page-toolbar {
     position: sticky;
-    top: 57px;
+    top: 0;
     z-index: 90;
   }
 
@@ -657,6 +657,7 @@ a.feature-card:hover {
 
   .split-layout {
     flex-direction: column;
+    min-height: 0;
   }
 
   .split-layout__aside {

@@ -211,7 +211,124 @@ body:has(.ft-page) .site-nav {
   display: none;
 }
 
+/* Desktop: inline toolbar — primary + tools sheet + badge in one row */
+.ft-toolbar-primary {
+  display: contents;
+}
+
+.ft-tools-toggle {
+  display: none;
+}
+
+.ft-tools-sheet {
+  display: contents;
+}
+
+.ft-tools-sheet__grid {
+  display: contents;
+}
+
+.ft-tools-sheet__zoom {
+  display: contents;
+}
+
+.ft-toolbar-search {
+  width: 100%;
+  max-width: 200px;
+  padding: 6px 10px;
+  border: none;
+  border-radius: 6px;
+  box-shadow: inset 0 0 0 1px var(--color-stone-surface);
+  background: var(--surface-white);
+}
+
+.ft-toolbar-focus select {
+  min-width: 120px;
+  max-width: 180px;
+}
+
 @media (max-width: 1024px), (pointer: coarse) {
+  body:has(.ft-page) .site-nav {
+    display: none;
+  }
+
+  .ft-page .page-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    padding: 8px 12px;
+  }
+
+  .ft-toolbar-primary {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+  }
+
+  .page-toolbar__title,
+  .page-toolbar__desktop-only {
+    display: none;
+  }
+
+  .ft-toolbar-focus {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .ft-toolbar-focus select {
+    width: 100%;
+    max-width: none;
+  }
+
+  .ft-toolbar-search {
+    flex: 1;
+    min-width: 0;
+    max-width: none;
+  }
+
+  .ft-tools-toggle {
+    display: inline-flex;
+    flex-shrink: 0;
+    padding: 6px 12px;
+  }
+
+  .ft-tools-sheet {
+    display: none;
+    width: 100%;
+    padding-top: 8px;
+    border-top: var(--shadow-inset-card);
+    margin-top: 8px;
+  }
+
+  .ft-tools-sheet.ft-tools-sheet--open {
+    display: block;
+  }
+
+  .ft-tools-sheet__grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .ft-tools-sheet__zoom {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    grid-column: 1 / -1;
+  }
+
+  .ft-tools-zoom-label {
+    min-width: 44px;
+    justify-content: center;
+  }
+
+  .ft-tools-sheet__grid .btn-pill {
+    width: 100%;
+    justify-content: center;
+  }
+
   .ft-edit-btn {
     display: inline-flex;
   }

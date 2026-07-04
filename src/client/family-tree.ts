@@ -70,6 +70,8 @@ const el = {
   addRelationTypeWrap: document.getElementById('ft-add-relation-type-wrap'),
   contextMenu: document.getElementById('ft-context-menu'),
   contextMenuTitle: document.getElementById('ft-context-menu-title'),
+  toolsToggle: document.getElementById('ft-tools-toggle'),
+  toolsSheet: document.getElementById('ft-tools-sheet'),
 }
 
 const REL_LABELS = {
@@ -99,8 +101,35 @@ function updateFocusBadge() {
   el.focusBadge.textContent = p ? `焦点：${p.name}` : '焦点：—'
 }
 
+function isToolsSheetOpen() {
+  return el.toolsSheet?.classList.contains('ft-tools-sheet--open') ?? false
+}
+
+function closeToolsSheet() {
+  if (!el.toolsSheet) return
+  if (!isMobile()) return
+  el.toolsSheet.classList.remove('ft-tools-sheet--open')
+  if (el.toolsToggle) {
+    el.toolsToggle.setAttribute('aria-expanded', 'false')
+  }
+}
+
+function openToolsSheet() {
+  if (!el.toolsSheet || !isMobile()) return
+  el.toolsSheet.classList.add('ft-tools-sheet--open')
+  if (el.toolsToggle) {
+    el.toolsToggle.setAttribute('aria-expanded', 'true')
+  }
+}
+
+function toggleToolsSheet() {
+  if (isToolsSheetOpen()) closeToolsSheet()
+  else openToolsSheet()
+}
+
 function openPanel() {
   if (!isMobile() || !el.panel) return
+  closeToolsSheet()
   el.panel.classList.add('ft-panel--open')
   if (el.panelBackdrop) {
     el.panelBackdrop.hidden = false
@@ -115,6 +144,33 @@ function closePanel() {
     el.panelBackdrop.hidden = true
     el.panelBackdrop.setAttribute('aria-hidden', 'true')
   }
+  if (isMobile()) {
+    syncCanvasSize()
+    if (state.graph) renderGraph()
+    fitView()
+  }
+}
+
+function resetAfterPersonRemoved(deletedId) {
+  state.selectedId = null
+  state.highlightId = null
+  state.collapsedIds.delete(deletedId)
+  if (state.focusId === deletedId) state.focusId = null
+}
+
+function syncCanvasSize() {
+  if (!el.svg?.parentElement) return
+  const rect = el.svg.parentElement.getBoundingClientRect()
+  if (rect.width && rect.height) {
+    d3.select(el.svg).attr('width', rect.width).attr('height', rect.height)
+  }
+}
+
+function syncCanvasLayout({ fit = false } = {}) {
+  syncCanvasSize()
+  if (gRoot && state.graph) renderGraph()
+  else if (gRoot) renderGraph()
+  if (fit) fitView()
 }
 
 function hideContextMenu() {
@@ -285,6 +341,10 @@ function refreshFocusSelect() {
 }
 
 async function loadTree({ revealId } = {}) {
+  if (state.focusId && !state.persons.some((p) => p.id === state.focusId)) {
+    state.focusId = null
+    refreshFocusSelect()
+  }
   if (!state.focusId && state.persons.length > 0) {
     refreshFocusSelect()
   }
@@ -345,30 +405,44 @@ function buildParentMap(edges) {
   return map
 }
 
-function collectDescendants(rootId, childrenMap) {
-  const hidden = new Set()
-  const queue = [...(childrenMap.get(rootId) ?? [])]
-  while (queue.length) {
-    const id = queue.shift()
-    if (hidden.has(id)) continue
-    hidden.add(id)
-    for (const childId of childrenMap.get(id) ?? []) queue.push(childId)
+function computeVisibleIds(graph, collapsedIds) {
+  if (!collapsedIds.size) {
+    return new Set(graph.nodes.map((n) => n.id))
   }
-  return hidden
+  const parentMap = buildParentMap(graph.edges)
+  const inGraph = new Set(graph.nodes.map((n) => n.id))
+  const memo = new Map()
+
+  function isVisible(id) {
+    if (memo.has(id)) return memo.get(id)
+    const parents = (parentMap.get(id) ?? []).filter((p) => inGraph.has(p))
+    if (parents.length === 0) {
+      memo.set(id, true)
+      return true
+    }
+    const ok = parents.some((p) => isVisible(p) && !collapsedIds.has(p))
+    memo.set(id, ok)
+    return ok
+  }
+
+  const visible = new Set()
+  for (const id of inGraph) {
+    if (isVisible(id)) visible.add(id)
+  }
+  return visible
 }
 
 function applyCollapsedFilter(graph, collapsedIds) {
   if (!collapsedIds.size) return graph
-  const childrenMap = buildChildrenMap(graph.edges)
-  const hidden = new Set()
-  for (const id of collapsedIds) {
-    for (const d of collectDescendants(id, childrenMap)) hidden.add(d)
-  }
-  const visibleIds = new Set(graph.nodes.filter((n) => !hidden.has(n.id)).map((n) => n.id))
+  const visibleIds = computeVisibleIds(graph, collapsedIds)
   return {
     focus_id: graph.focus_id,
     nodes: graph.nodes.filter((n) => visibleIds.has(n.id)),
-    edges: graph.edges.filter((e) => visibleIds.has(e.from) && visibleIds.has(e.to)),
+    edges: graph.edges.filter((e) => {
+      if (!visibleIds.has(e.from) || !visibleIds.has(e.to)) return false
+      if (e.type === 'parent' && collapsedIds.has(e.from)) return false
+      return true
+    }),
   }
 }
 
@@ -634,11 +708,9 @@ function spousePath(a, b) {
 function renderGraph() {
   hideContextMenu()
   if (!gRoot) initSvg()
-  else {
-    const wrap = el.svg.parentElement
-    const rect = wrap.getBoundingClientRect()
-    d3.select(el.svg).attr('width', rect.width).attr('height', rect.height)
-  }
+  else syncCanvasSize()
+
+  if (!gRoot) return
 
   gZoom.selectAll('*').remove()
 
@@ -1027,16 +1099,30 @@ async function deletePerson() {
   if (!confirm(msg)) return
   try {
     await api(`/persons/${id}`, { method: 'DELETE' })
-    state.selectedId = null
+    resetAfterPersonRemoved(id)
+    hideContextMenu()
+    state.graph = null
     el.detailForm.hidden = true
     el.panelEmpty.hidden = false
-    closePanel()
     setMsg(el.panelMsg, '')
+    closePanel()
+    renderGraph()
     await loadPersons()
     refreshFocusSelect()
+    updateFocusBadge()
     await loadTree()
+    syncCanvasLayout({ fit: true })
   } catch (err) {
-    setMsg(el.panelMsg, err.message, 'error')
+    window.alert(`删除后刷新失败：${err.message}`)
+    try {
+      await loadPersons()
+      refreshFocusSelect()
+      updateFocusBadge()
+      await loadTree()
+      syncCanvasLayout({ fit: true })
+    } catch (retryErr) {
+      window.alert(`树图刷新失败：${retryErr.message}`)
+    }
   }
 }
 
@@ -1173,7 +1259,19 @@ function setupEvents() {
   })
 
   document.addEventListener('keydown', (event) => {
-    if (event.key === 'Escape') hideContextMenu()
+    if (event.key === 'Escape') {
+      hideContextMenu()
+      closeToolsSheet()
+    }
+  })
+
+  el.toolsToggle?.addEventListener('click', (event) => {
+    event.stopPropagation()
+    toggleToolsSheet()
+  })
+
+  el.svg?.addEventListener('click', () => {
+    closeToolsSheet()
   })
 
   el.addRelationType.addEventListener('change', () => {

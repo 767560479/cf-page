@@ -6,57 +6,72 @@ export function FamilyTreePage() {
       <SiteNav current="/family-tree" />
       <div class="ft-page">
       <header class="page-toolbar">
-        <div class="page-toolbar__group">
+        <div class="ft-toolbar-primary">
           <PageBack label="← 首页" />
           <h1 class="page-toolbar__title">家族树</h1>
-        </div>
-        <div class="page-toolbar__group page-toolbar__group--focus">
-          <span id="ft-focus-badge" class="ft-focus-badge" aria-live="polite">
-            焦点：—
-          </span>
-          <label class="toolbar-field">
+          <label class="toolbar-field ft-toolbar-focus">
             <span class="visually-hidden">切换焦点</span>
             <select id="ft-focus-select" aria-label="切换焦点成员"></select>
           </label>
-        </div>
-        <div class="page-toolbar__group page-toolbar__group--compact">
-          <label class="toolbar-field">
-            <span>上</span>
-            <input id="ft-gen-up" type="number" min="0" max="10" value="3" />
-          </label>
-          <label class="toolbar-field">
-            <span>下</span>
-            <input id="ft-gen-down" type="number" min="0" max="10" value="3" />
-          </label>
-        </div>
-        <div class="page-toolbar__group page-toolbar__group--grow">
-          <input id="ft-search" type="search" placeholder="搜索姓名…" class="toolbar-field" style="width:100%;max-width:200px;padding:6px 10px;border:none;border-radius:6px;box-shadow:inset 0 0 0 1px var(--color-stone-surface);background:var(--surface-white);" />
-        </div>
-        <div class="page-toolbar__group page-toolbar__group--compact">
-          <button type="button" id="ft-edit-btn" class="btn-pill btn-pill--sand ft-edit-btn">
-            编辑成员
+          <input
+            id="ft-search"
+            type="search"
+            placeholder="搜索姓名…"
+            class="toolbar-field ft-toolbar-search"
+            aria-label="搜索姓名"
+          />
+          <button
+            type="button"
+            id="ft-tools-toggle"
+            class="btn-pill btn-pill--sand ft-tools-toggle"
+            aria-expanded="false"
+            aria-controls="ft-tools-sheet"
+          >
+            工具
           </button>
-          <button type="button" id="ft-add-btn" class="btn-pill btn-pill--dark">
-            + 添加成员
-          </button>
-          <button type="button" id="ft-zoom-out" class="btn-pill btn-pill--sand" title="缩小">
-            −
-          </button>
-          <span id="ft-zoom-label" class="toolbar-field" style="min-width:44px;justify-content:center;">
-            100%
+        </div>
+
+        <div id="ft-tools-sheet" class="ft-tools-sheet">
+          <div class="ft-tools-sheet__grid">
+            <label class="toolbar-field">
+              <span>上</span>
+              <input id="ft-gen-up" type="number" min="0" max="10" value="3" />
+            </label>
+            <label class="toolbar-field">
+              <span>下</span>
+              <input id="ft-gen-down" type="number" min="0" max="10" value="3" />
+            </label>
+            <div class="ft-tools-sheet__zoom">
+              <button type="button" id="ft-zoom-out" class="btn-pill btn-pill--sand" title="缩小">
+                −
+              </button>
+              <span id="ft-zoom-label" class="toolbar-field ft-tools-zoom-label">100%</span>
+              <button type="button" id="ft-zoom-in" class="btn-pill btn-pill--sand" title="放大">
+                +
+              </button>
+            </div>
+            <button type="button" id="ft-fit-btn" class="btn-pill btn-pill--sand">
+              适应屏幕
+            </button>
+            <button type="button" id="ft-expand-all" class="btn-pill btn-pill--sand">
+              全部展开
+            </button>
+            <button type="button" id="ft-collapse-all" class="btn-pill btn-pill--sand">
+              全部收起
+            </button>
+            <button type="button" id="ft-edit-btn" class="btn-pill btn-pill--sand ft-edit-btn">
+              编辑成员
+            </button>
+            <button type="button" id="ft-add-btn" class="btn-pill btn-pill--dark">
+              + 添加成员
+            </button>
+          </div>
+        </div>
+
+        <div class="page-toolbar__desktop-only">
+          <span id="ft-focus-badge" class="ft-focus-badge" aria-live="polite">
+            焦点：—
           </span>
-          <button type="button" id="ft-zoom-in" class="btn-pill btn-pill--sand" title="放大">
-            +
-          </button>
-          <button type="button" id="ft-fit-btn" class="btn-pill btn-pill--sand">
-            适应屏幕
-          </button>
-          <button type="button" id="ft-expand-all" class="btn-pill btn-pill--sand">
-            全部展开
-          </button>
-          <button type="button" id="ft-collapse-all" class="btn-pill btn-pill--sand">
-            全部收起
-          </button>
         </div>
       </header>
 
