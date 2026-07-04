@@ -1,15 +1,31 @@
 import { jsxRenderer } from 'hono/jsx-renderer'
 
-export const renderer = jsxRenderer(({ children }) => {
-  return (
-    <html lang="zh-CN">
-      <head>
-        <meta charset="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <title>cf-page 实验室</title>
-        <link href="/static/style.css" rel="stylesheet" />
-      </head>
-      <body>{children}</body>
-    </html>
-  )
-})
+type LayoutProps = {
+  children: unknown
+  title?: string
+  css?: string
+}
+
+export const renderer = jsxRenderer(
+  ({ children, title = 'cf-page', css }: LayoutProps) => {
+    return (
+      <html lang="zh-CN">
+        <head>
+          <meta charset="utf-8" />
+          <meta name="viewport" content="width=device-width, initial-scale=1" />
+          <title>{title}</title>
+          <link rel="preconnect" href="https://fonts.googleapis.com" />
+          <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
+          <link
+            href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500&family=Inter:wght@400;500;600&display=swap"
+            rel="stylesheet"
+          />
+          <link href="/static/family-tokens.css" rel="stylesheet" />
+          <link href="/static/family-ui.css" rel="stylesheet" />
+          {css ? <link href={css} rel="stylesheet" /> : null}
+        </head>
+        <body>{children}</body>
+      </html>
+    )
+  }
+)

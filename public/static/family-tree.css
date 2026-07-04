@@ -1,0 +1,101 @@
+/* Family tree — canvas & SVG nodes (Family light theme) */
+
+.ft-canvas-wrap {
+  position: relative;
+  min-height: calc(100vh - 120px);
+}
+
+.ft-svg {
+  display: block;
+  width: 100%;
+  height: calc(100vh - 120px);
+  cursor: grab;
+  background: var(--surface-stone);
+}
+
+.ft-svg:active {
+  cursor: grabbing;
+}
+
+.ft-edge {
+  fill: none;
+  stroke-width: 1.5;
+}
+
+.ft-edge--parent {
+  stroke: var(--color-muted-gray);
+}
+
+.ft-edge--spouse {
+  stroke: var(--color-plum-violet);
+  stroke-dasharray: 6 4;
+}
+
+.ft-node {
+  cursor: pointer;
+}
+
+.ft-node--selected .ft-node-card {
+  box-shadow: inset 0 0 0 2px var(--color-ember-orange);
+}
+
+.ft-node--highlight .ft-node-card {
+  box-shadow: inset 0 0 0 2px var(--color-grass-green);
+}
+
+.ft-node-card {
+  fill: #ffffff;
+  stroke: none;
+  filter: drop-shadow(0 0 0 1px var(--color-stone-surface));
+}
+
+.ft-node-card--male {
+  filter: drop-shadow(0 0 0 1px var(--color-sky-blue));
+}
+
+.ft-node-card--female {
+  filter: drop-shadow(0 0 0 1px var(--color-coral-pink));
+}
+
+.ft-node-avatar-bg {
+  fill: var(--color-stone-surface);
+}
+
+.ft-node-avatar-text {
+  fill: var(--color-heading-charcoal);
+  font-size: 14px;
+  font-weight: 600;
+  font-family: var(--font-inter);
+  text-anchor: middle;
+  dominant-baseline: central;
+}
+
+.ft-node-name {
+  fill: var(--color-heading-charcoal);
+  font-size: 13px;
+  font-weight: 600;
+  font-family: var(--font-inter);
+  text-anchor: middle;
+}
+
+.ft-node-dates {
+  fill: var(--color-muted-gray);
+  font-size: 10px;
+  font-family: var(--font-inter);
+  text-anchor: middle;
+}
+
+.ft-node-focus-ring {
+  fill: none;
+  stroke: var(--color-link-blue);
+  stroke-width: 2;
+  stroke-dasharray: 4 3;
+}
+
+.relations-fieldset label {
+  margin-top: 12px;
+}
+
+.relations-fieldset label:first-of-type {
+  margin-top: 0;
+}

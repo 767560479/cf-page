@@ -45,7 +45,36 @@ pnpm run build
 pnpm exec wrangler pages dev dist --port 8788
 ```
 
-浏览器打开终端提示的地址（通常 `http://localhost:5173`），首页「实验室」可测试 KV 读写与 D1 Notes CRUD。
+浏览器打开终端提示的地址（通常 `http://localhost:5173`）：
+
+| 路径 | 说明 |
+|------|------|
+| `/` | **功能入口门户**（本站应用 + 外链） |
+| `/family-tree` | 家族树（D1 CRUD + 可缩放树图） |
+| `/lab` | KV / D1 实验室 |
+| `/codex` | Codex 概念展示页 |
+
+> **家族树**依赖 D1。`pnpm run dev` 使用 Cloudflare 本地适配器，需先执行 `pnpm run db:migrate:local`。若 API 无数据，可用 `pnpm run build` + `pnpm exec wrangler pages dev dist` 验证完整绑定。
+
+## 家族树
+
+路径 [`/family-tree`](http://localhost:5173/family-tree)，数据存 D1（`persons` / `parent_links` / `spouse_links`）。
+
+**功能：** 成员增删改查；父亲/母亲/配偶关系；焦点人物上下 N 代子图；dagre 布局 + 滚轮/按钮缩放与拖拽平移；姓名搜索定位。
+
+**首次使用：**
+
+```bash
+pnpm run db:migrate:local   # 含示例三代张氏家族数据
+pnpm run dev
+# 打开 http://localhost:5173/family-tree
+```
+
+**部署后**需额外执行：`pnpm run db:migrate:remote`
+
+**API 前缀：** `/api/family`（persons、parents、spouses、tree）
+
+> 当前无登录，部署到公网前请评估隐私风险。
 
 ## 部署
 
@@ -106,20 +135,33 @@ pnpm run deploy
 
 ```
 src/
-  index.tsx          # 主应用 + 首页
+  index.tsx          # 主应用 + 路由
   renderer.tsx       # HTML 布局
+  data/
+    site-links.ts    # 首页入口配置（本站 + 外链）
+  pages/
+    home.tsx         # 首页门户
+    codex-landing.tsx
+    family-tree.tsx
+    lab.tsx
   routes/
-    kv.ts            # /api/kv/* 示例
-    notes.ts         # /api/notes/* 示例
+    kv.ts            # /api/kv/*
+    notes.ts         # /api/notes/*
+    family.ts        # /api/family/*
   lib/
-    db.ts            # D1 查询封装
-migrations/          # D1 迁移
+    db.ts            # D1 Notes
+    family.ts        # D1 家族树
+migrations/          # D1 迁移（0002 为家族树表 + 示例数据）
 public/static/       # 静态 CSS / JS
 ```
 
 ## 如何加新功能
 
 ### 加一个新页面
+
+1. 在 `src/pages/` 新建页面组件
+2. 在 `src/index.tsx` 注册路由
+3. 在 [`src/data/site-links.ts`](src/data/site-links.ts) 的 `localApps` 增加一项，首页会自动出现入口
 
 **最快** — 在 `src/index.tsx` 增加路由：
 

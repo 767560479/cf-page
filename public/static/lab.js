@@ -62,7 +62,7 @@ async function loadNotes() {
         ${note.content ? `<p>${escapeHtml(note.content)}</p>` : ''}
         <small>#${note.id} · ${note.created_at}</small>
       </div>
-      <button type="button" data-id="${note.id}" class="danger">删除</button>
+      <button type="button" data-id="${note.id}" class="btn-pill btn-pill--danger">删除</button>
     `
     li.querySelector('button').addEventListener('click', async () => {
       await fetch(`/api/notes/${note.id}`, { method: 'DELETE' })
