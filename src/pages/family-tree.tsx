@@ -4,6 +4,7 @@ export function FamilyTreePage() {
   return (
     <>
       <SiteNav current="/family-tree" />
+      <div class="ft-page">
       <header class="page-toolbar">
         <div class="page-toolbar__group">
           <PageBack label="← 首页" />
@@ -62,9 +63,6 @@ export function FamilyTreePage() {
             </button>
           </div>
           <svg id="ft-svg" class="ft-svg" aria-label="家族树画布"></svg>
-          <p id="ft-mobile-hint" class="ft-mobile-hint">
-            点击节点或按「编辑成员」查看详情
-          </p>
         </div>
 
         <div id="ft-panel-backdrop" class="ft-panel-backdrop" hidden aria-hidden="true"></div>
@@ -150,10 +148,12 @@ export function FamilyTreePage() {
           </form>
         </aside>
       </div>
+      </div>
 
       <dialog id="ft-add-dialog" class="dialog">
         <form id="ft-add-form" method="dialog" class="form">
-          <h2>添加成员</h2>
+          <h2 id="ft-add-dialog-title">添加成员</h2>
+          <p id="ft-add-relation-hint" class="ft-add-relation-hint" hidden></p>
           <label>
             姓名
             <input id="ft-add-name" type="text" required />
@@ -170,7 +170,7 @@ export function FamilyTreePage() {
             出生
             <input id="ft-add-birth" type="text" />
           </label>
-          <label>
+          <label id="ft-add-relation-type-wrap">
             与现有成员关系
             <select id="ft-add-relation-type">
               <option value="">无（独立添加）</option>
@@ -195,6 +195,25 @@ export function FamilyTreePage() {
           <p id="ft-add-msg" class="form-msg" role="status"></p>
         </form>
       </dialog>
+
+      <div id="ft-context-menu" class="ft-context-menu" hidden role="menu">
+        <p id="ft-context-menu-title" class="ft-context-menu__title"></p>
+        <button type="button" class="ft-context-menu__item" data-action="father">
+          添加父亲
+        </button>
+        <button type="button" class="ft-context-menu__item" data-action="mother">
+          添加母亲
+        </button>
+        <button type="button" class="ft-context-menu__item" data-action="child">
+          添加子女
+        </button>
+        <button type="button" class="ft-context-menu__item" data-action="spouse">
+          添加配偶
+        </button>
+        <button type="button" class="ft-context-menu__item ft-context-menu__item--detail" data-action="detail">
+          查看详情
+        </button>
+      </div>
 
       <script type="module" src="/static/family-tree.js"></script>
     </>

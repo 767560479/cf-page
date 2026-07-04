@@ -3,6 +3,7 @@ import dagre from '@dagrejs/dagre'
 
 const NODE_W = 136
 const NODE_H = 72
+const NODE_GAP = 20
 const API = '/api/family'
 
 const GENDER_STYLE = {
@@ -61,11 +62,29 @@ const el = {
   addRelatedWrap: document.getElementById('ft-add-related-wrap'),
   addRelated: document.getElementById('ft-add-related'),
   addMsg: document.getElementById('ft-add-msg'),
+  addDialogTitle: document.getElementById('ft-add-dialog-title'),
+  addRelationHint: document.getElementById('ft-add-relation-hint'),
+  addRelationTypeWrap: document.getElementById('ft-add-relation-type-wrap'),
+  contextMenu: document.getElementById('ft-context-menu'),
+  contextMenuTitle: document.getElementById('ft-context-menu-title'),
 }
+
+const REL_LABELS = {
+  father: '父亲',
+  mother: '母亲',
+  child: '子女',
+  spouse: '配偶',
+}
+
+const addDraft = { relatedId: null, relType: '' }
 
 let gRoot
 let gZoom
 let zoomBehavior
+let contextMenuTargetId = null
+let suppressNodeClick = false
+let longPressTimer = null
+const LONG_PRESS_MS = 500
 
 function isMobile() {
   return MOBILE_MQ.matches
@@ -93,6 +112,92 @@ function closePanel() {
     el.panelBackdrop.hidden = true
     el.panelBackdrop.setAttribute('aria-hidden', 'true')
   }
+}
+
+function hideContextMenu() {
+  if (!el.contextMenu) return
+  el.contextMenu.hidden = true
+  contextMenuTargetId = null
+}
+
+function showContextMenu(personId, clientX, clientY) {
+  const p = state.persons.find((x) => x.id === personId)
+  if (!p || !el.contextMenu) return
+
+  if (el.contextMenuTitle) {
+    el.contextMenuTitle.textContent = `为「${p.name}」添加`
+  }
+
+  for (const action of ['father', 'mother', 'child', 'spouse']) {
+    const btn = el.contextMenu.querySelector(`[data-action="${action}"]`)
+    if (!btn) continue
+    if (action === 'father') btn.disabled = !!p.father_id
+    else if (action === 'mother') btn.disabled = !!p.mother_id
+    else if (action === 'spouse') btn.disabled = !!(p.spouse_ids && p.spouse_ids[0])
+    else btn.disabled = false
+  }
+
+  contextMenuTargetId = personId
+  el.contextMenu.hidden = false
+
+  const pad = 8
+  el.contextMenu.style.left = `${clientX}px`
+  el.contextMenu.style.top = `${clientY}px`
+  const rect = el.contextMenu.getBoundingClientRect()
+  let left = clientX
+  let top = clientY
+  if (rect.right > window.innerWidth - pad) left = window.innerWidth - rect.width - pad
+  if (rect.bottom > window.innerHeight - pad) top = window.innerHeight - rect.height - pad
+  left = Math.max(pad, left)
+  top = Math.max(pad, top)
+  el.contextMenu.style.left = `${left}px`
+  el.contextMenu.style.top = `${top}px`
+}
+
+function bindNodePointerEvents(nodesG) {
+  nodesG
+    .style('touch-action', 'manipulation')
+    .on('contextmenu', (event, d) => {
+      event.preventDefault()
+      event.stopPropagation()
+      suppressNodeClick = true
+      showContextMenu(d.id, event.clientX, event.clientY)
+    })
+    .on('pointerdown', (event, d) => {
+      if (event.pointerType === 'mouse' && event.button !== 0) return
+      clearTimeout(longPressTimer)
+      longPressTimer = setTimeout(() => {
+        longPressTimer = null
+        suppressNodeClick = true
+        showContextMenu(d.id, event.clientX, event.clientY)
+      }, LONG_PRESS_MS)
+    })
+    .on('pointerup', (event, d) => {
+      if (event.pointerType === 'mouse' && event.button !== 0) return
+      clearTimeout(longPressTimer)
+      longPressTimer = null
+      if (suppressNodeClick) {
+        suppressNodeClick = false
+        event.stopPropagation()
+        return
+      }
+      event.stopPropagation()
+      hideContextMenu()
+      selectPerson(d.id)
+    })
+    .on('pointercancel', () => {
+      clearTimeout(longPressTimer)
+      longPressTimer = null
+    })
+    .on('pointerleave', () => {
+      clearTimeout(longPressTimer)
+      longPressTimer = null
+    })
+}
+
+function resetAddDraft() {
+  addDraft.relatedId = null
+  addDraft.relType = ''
 }
 
 async function api(path, options) {
@@ -198,7 +303,7 @@ async function loadTree() {
 
 function layoutGraph(graph) {
   const g = new dagre.graphlib.Graph()
-  g.setGraph({ rankdir: 'TB', nodesep: 48, ranksep: 64, marginx: 40, marginy: 40 })
+  g.setGraph({ rankdir: 'TB', nodesep: 56, ranksep: 72, marginx: 40, marginy: 40 })
   g.setDefaultEdgeLabel(() => ({}))
 
   for (const node of graph.nodes) {
@@ -208,6 +313,12 @@ function layoutGraph(graph) {
   for (const edge of graph.edges) {
     if (edge.type === 'parent') {
       g.setEdge(String(edge.from), String(edge.to), { edgeType: 'parent' })
+    } else if (edge.type === 'spouse') {
+      const from = String(edge.from)
+      const to = String(edge.to)
+      if (!g.hasEdge(from, to) && !g.hasEdge(to, from)) {
+        g.setEdge(from, to, { edgeType: 'spouse', minlen: 0, weight: 2 })
+      }
     }
   }
 
@@ -219,7 +330,6 @@ function layoutGraph(graph) {
     positions.set(Number(id), { x: n.x, y: n.y, person: n.person })
   })
 
-  // Align spouses horizontally on same row
   const spouseEdges = graph.edges.filter((e) => e.type === 'spouse')
   for (const edge of spouseEdges) {
     const a = positions.get(edge.from)
@@ -228,7 +338,7 @@ function layoutGraph(graph) {
     const avgY = (a.y + b.y) / 2
     a.y = avgY
     b.y = avgY
-    const gap = NODE_W + 24
+    const gap = NODE_W + 32
     const mid = (a.x + b.x) / 2
     a.x = mid - gap / 2
     b.x = mid + gap / 2
@@ -236,7 +346,43 @@ function layoutGraph(graph) {
     positions.set(edge.to, b)
   }
 
+  resolveOverlaps(positions)
+
   return { positions, spouseEdges, parentEdges: graph.edges.filter((e) => e.type === 'parent') }
+}
+
+function resolveOverlaps(positions) {
+  const ids = [...positions.keys()]
+  for (let iter = 0; iter < 16; iter++) {
+    let moved = false
+    for (let i = 0; i < ids.length; i++) {
+      for (let j = i + 1; j < ids.length; j++) {
+        const idA = ids[i]
+        const idB = ids[j]
+        const a = positions.get(idA)
+        const b = positions.get(idB)
+        const dx = b.x - a.x
+        const dy = b.y - a.y
+        const overlapX = NODE_W + NODE_GAP - Math.abs(dx)
+        const overlapY = NODE_H + NODE_GAP - Math.abs(dy)
+        if (overlapX > 0 && overlapY > 0) {
+          if (overlapX <= overlapY) {
+            const shift = overlapX / 2 + 1
+            a.x -= dx >= 0 ? shift : -shift
+            b.x += dx >= 0 ? shift : -shift
+          } else {
+            const shift = overlapY / 2 + 1
+            a.y -= dy >= 0 ? shift : -shift
+            b.y += dy >= 0 ? shift : -shift
+          }
+          positions.set(idA, a)
+          positions.set(idB, b)
+          moved = true
+        }
+      }
+    }
+    if (!moved) break
+  }
 }
 
 function initSvg() {
@@ -279,6 +425,7 @@ function spousePath(a, b) {
 }
 
 function renderGraph() {
+  hideContextMenu()
   if (!gRoot) initSvg()
   else {
     const wrap = el.svg.parentElement
@@ -333,12 +480,8 @@ function renderGraph() {
       if (!pos) return 'translate(0,0)'
       return `translate(${pos.x - NODE_W / 2},${pos.y - NODE_H / 2})`
     })
-    .style('touch-action', 'manipulation')
-    .on('pointerup', (event, d) => {
-      if (event.pointerType === 'mouse' && event.button !== 0) return
-      event.stopPropagation()
-      selectPerson(d.id)
-    })
+
+  bindNodePointerEvents(nodesG)
 
   nodesG
     .filter((d) => d.id === state.graph.focus_id)
@@ -486,7 +629,7 @@ async function openEditorForSelection() {
   await selectPerson(id)
 }
 
-async function selectPerson(id) {
+async function selectPerson(id, { openDrawer = true } = {}) {
   state.selectedId = id
   const data = await api(`/persons/${id}`)
   const p = data.person
@@ -504,20 +647,52 @@ async function selectPerson(id) {
   fillPersonSelect(el.spouse, state.persons, p.spouse_ids[0] ?? null, p.id)
   setMsg(el.panelMsg, '')
   renderGraph()
-  openPanel()
+  if (openDrawer && isMobile()) openPanel()
 }
 
-function openAddDialog(relatedId) {
+function openAddDialog(opts) {
   setMsg(el.addMsg, '')
   el.addForm.reset()
-  fillPersonSelect(el.addRelated, state.persons, relatedId ?? null, null)
-  if (relatedId) {
-    el.addRelationType.value = 'child'
-    el.addRelatedWrap.hidden = false
-    el.addRelated.value = String(relatedId)
-  } else {
-    el.addRelatedWrap.hidden = el.addRelationType.value === ''
+  resetAddDraft()
+
+  let relatedId = null
+  let relType = ''
+  if (typeof opts === 'number') {
+    relatedId = opts
+    relType = 'child'
+  } else if (opts) {
+    relatedId = opts.relatedId ?? null
+    relType = opts.relType ?? ''
   }
+
+  const prefill = relatedId && relType
+  if (prefill) {
+    addDraft.relatedId = relatedId
+    addDraft.relType = relType
+    const p = state.persons.find((x) => x.id === relatedId)
+    if (el.addDialogTitle) el.addDialogTitle.textContent = `添加${REL_LABELS[relType]}`
+    if (el.addRelationHint) {
+      el.addRelationHint.hidden = false
+      el.addRelationHint.textContent = `将作为「${p?.name ?? ''}」的${REL_LABELS[relType]}。若树上未出现新节点，请增大工具栏的「上/下」代数。`
+    }
+    if (el.addRelationTypeWrap) el.addRelationTypeWrap.hidden = true
+    el.addRelatedWrap.hidden = true
+    el.addGender.value =
+      relType === 'father' ? 'male' : relType === 'mother' ? 'female' : 'unknown'
+  } else {
+    if (el.addDialogTitle) el.addDialogTitle.textContent = '添加成员'
+    if (el.addRelationHint) el.addRelationHint.hidden = true
+    if (el.addRelationTypeWrap) el.addRelationTypeWrap.hidden = false
+    fillPersonSelect(el.addRelated, state.persons, relatedId ?? null, null)
+    if (relatedId) {
+      el.addRelationType.value = 'child'
+      el.addRelatedWrap.hidden = false
+      el.addRelated.value = String(relatedId)
+    } else {
+      el.addRelatedWrap.hidden = el.addRelationType.value === ''
+    }
+  }
+
   el.addDialog.showModal()
 }
 
@@ -580,7 +755,8 @@ async function savePerson(e) {
     await loadPersons()
     refreshFocusSelect()
     await loadTree()
-    await selectPerson(id)
+    await selectPerson(id, { openDrawer: false })
+    if (isMobile()) closePanel()
   } catch (err) {
     setMsg(el.panelMsg, err.message, 'error')
   }
@@ -617,8 +793,8 @@ async function createPerson(e) {
     gender: el.addGender.value,
     birth_date: el.addBirth.value.trim() || null,
   }
-  const relType = el.addRelationType.value
-  const relatedId = el.addRelated.value ? Number(el.addRelated.value) : null
+  const relType = addDraft.relType || el.addRelationType.value
+  const relatedId = addDraft.relatedId ?? (el.addRelated.value ? Number(el.addRelated.value) : null)
 
   try {
     if (relType === 'child' && relatedId) {
@@ -666,6 +842,7 @@ async function createPerson(e) {
     }
 
     el.addDialog.close()
+    resetAddDraft()
     await loadPersons()
     state.focusId = newId
     refreshFocusSelect()
@@ -710,7 +887,36 @@ function setupEvents() {
   document.getElementById('ft-add-btn').addEventListener('click', () => openAddDialog())
   document.getElementById('ft-edit-btn')?.addEventListener('click', () => openEditorForSelection())
   document.getElementById('ft-empty-add').addEventListener('click', () => openAddDialog())
-  document.getElementById('ft-add-cancel').addEventListener('click', () => el.addDialog.close())
+  document.getElementById('ft-add-cancel').addEventListener('click', () => {
+    resetAddDraft()
+    el.addDialog.close()
+  })
+
+  el.contextMenu?.querySelectorAll('[data-action]').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const action = btn.getAttribute('data-action')
+      const id = contextMenuTargetId
+      hideContextMenu()
+      if (!id) return
+      if (action === 'detail') {
+        await selectPerson(id)
+        return
+      }
+      if (['father', 'mother', 'child', 'spouse'].includes(action)) {
+        openAddDialog({ relatedId: id, relType: action })
+      }
+    })
+  })
+
+  document.addEventListener('click', (event) => {
+    if (el.contextMenu?.hidden) return
+    if (el.contextMenu?.contains(event.target)) return
+    hideContextMenu()
+  })
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') hideContextMenu()
+  })
 
   el.addRelationType.addEventListener('change', () => {
     el.addRelatedWrap.hidden = !el.addRelationType.value

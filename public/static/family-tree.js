@@ -4432,6 +4432,7 @@ var To = sr;
 // src/client/family-tree.ts
 var NODE_W = 136;
 var NODE_H = 72;
+var NODE_GAP = 20;
 var API = "/api/family";
 var GENDER_STYLE = {
   male: { fill: "rgba(100,198,255,0.35)", stroke: "#64c6ff", avatar: "#64c6ff", dot: "#64c6ff" },
@@ -4484,11 +4485,27 @@ var el = {
   addRelationType: document.getElementById("ft-add-relation-type"),
   addRelatedWrap: document.getElementById("ft-add-related-wrap"),
   addRelated: document.getElementById("ft-add-related"),
-  addMsg: document.getElementById("ft-add-msg")
+  addMsg: document.getElementById("ft-add-msg"),
+  addDialogTitle: document.getElementById("ft-add-dialog-title"),
+  addRelationHint: document.getElementById("ft-add-relation-hint"),
+  addRelationTypeWrap: document.getElementById("ft-add-relation-type-wrap"),
+  contextMenu: document.getElementById("ft-context-menu"),
+  contextMenuTitle: document.getElementById("ft-context-menu-title")
 };
+var REL_LABELS = {
+  father: "\u7236\u4EB2",
+  mother: "\u6BCD\u4EB2",
+  child: "\u5B50\u5973",
+  spouse: "\u914D\u5076"
+};
+var addDraft = { relatedId: null, relType: "" };
 var gRoot;
 var gZoom;
 var zoomBehavior;
+var contextMenuTargetId = null;
+var suppressNodeClick = false;
+var longPressTimer = null;
+var LONG_PRESS_MS = 500;
 function isMobile() {
   return MOBILE_MQ.matches;
 }
@@ -4512,6 +4529,78 @@ function closePanel() {
     el.panelBackdrop.hidden = true;
     el.panelBackdrop.setAttribute("aria-hidden", "true");
   }
+}
+function hideContextMenu() {
+  if (!el.contextMenu) return;
+  el.contextMenu.hidden = true;
+  contextMenuTargetId = null;
+}
+function showContextMenu(personId, clientX, clientY) {
+  const p2 = state.persons.find((x2) => x2.id === personId);
+  if (!p2 || !el.contextMenu) return;
+  if (el.contextMenuTitle) {
+    el.contextMenuTitle.textContent = `\u4E3A\u300C${p2.name}\u300D\u6DFB\u52A0`;
+  }
+  for (const action of ["father", "mother", "child", "spouse"]) {
+    const btn = el.contextMenu.querySelector(`[data-action="${action}"]`);
+    if (!btn) continue;
+    if (action === "father") btn.disabled = !!p2.father_id;
+    else if (action === "mother") btn.disabled = !!p2.mother_id;
+    else if (action === "spouse") btn.disabled = !!(p2.spouse_ids && p2.spouse_ids[0]);
+    else btn.disabled = false;
+  }
+  contextMenuTargetId = personId;
+  el.contextMenu.hidden = false;
+  const pad = 8;
+  el.contextMenu.style.left = `${clientX}px`;
+  el.contextMenu.style.top = `${clientY}px`;
+  const rect = el.contextMenu.getBoundingClientRect();
+  let left = clientX;
+  let top = clientY;
+  if (rect.right > window.innerWidth - pad) left = window.innerWidth - rect.width - pad;
+  if (rect.bottom > window.innerHeight - pad) top = window.innerHeight - rect.height - pad;
+  left = Math.max(pad, left);
+  top = Math.max(pad, top);
+  el.contextMenu.style.left = `${left}px`;
+  el.contextMenu.style.top = `${top}px`;
+}
+function bindNodePointerEvents(nodesG) {
+  nodesG.style("touch-action", "manipulation").on("contextmenu", (event, d) => {
+    event.preventDefault();
+    event.stopPropagation();
+    suppressNodeClick = true;
+    showContextMenu(d.id, event.clientX, event.clientY);
+  }).on("pointerdown", (event, d) => {
+    if (event.pointerType === "mouse" && event.button !== 0) return;
+    clearTimeout(longPressTimer);
+    longPressTimer = setTimeout(() => {
+      longPressTimer = null;
+      suppressNodeClick = true;
+      showContextMenu(d.id, event.clientX, event.clientY);
+    }, LONG_PRESS_MS);
+  }).on("pointerup", (event, d) => {
+    if (event.pointerType === "mouse" && event.button !== 0) return;
+    clearTimeout(longPressTimer);
+    longPressTimer = null;
+    if (suppressNodeClick) {
+      suppressNodeClick = false;
+      event.stopPropagation();
+      return;
+    }
+    event.stopPropagation();
+    hideContextMenu();
+    selectPerson(d.id);
+  }).on("pointercancel", () => {
+    clearTimeout(longPressTimer);
+    longPressTimer = null;
+  }).on("pointerleave", () => {
+    clearTimeout(longPressTimer);
+    longPressTimer = null;
+  });
+}
+function resetAddDraft() {
+  addDraft.relatedId = null;
+  addDraft.relType = "";
 }
 async function api(path, options) {
   const res = await fetch(`${API}${path}`, {
@@ -4608,7 +4697,7 @@ async function loadTree() {
 }
 function layoutGraph(graph) {
   const g = new To.graphlib.Graph();
-  g.setGraph({ rankdir: "TB", nodesep: 48, ranksep: 64, marginx: 40, marginy: 40 });
+  g.setGraph({ rankdir: "TB", nodesep: 56, ranksep: 72, marginx: 40, marginy: 40 });
   g.setDefaultEdgeLabel(() => ({}));
   for (const node of graph.nodes) {
     g.setNode(String(node.id), { width: NODE_W, height: NODE_H, person: node });
@@ -4616,6 +4705,12 @@ function layoutGraph(graph) {
   for (const edge of graph.edges) {
     if (edge.type === "parent") {
       g.setEdge(String(edge.from), String(edge.to), { edgeType: "parent" });
+    } else if (edge.type === "spouse") {
+      const from = String(edge.from);
+      const to = String(edge.to);
+      if (!g.hasEdge(from, to) && !g.hasEdge(to, from)) {
+        g.setEdge(from, to, { edgeType: "spouse", minlen: 0, weight: 2 });
+      }
     }
   }
   To.layout(g);
@@ -4632,14 +4727,48 @@ function layoutGraph(graph) {
     const avgY = (a.y + b.y) / 2;
     a.y = avgY;
     b.y = avgY;
-    const gap = NODE_W + 24;
+    const gap = NODE_W + 32;
     const mid = (a.x + b.x) / 2;
     a.x = mid - gap / 2;
     b.x = mid + gap / 2;
     positions.set(edge.from, a);
     positions.set(edge.to, b);
   }
+  resolveOverlaps(positions);
   return { positions, spouseEdges, parentEdges: graph.edges.filter((e) => e.type === "parent") };
+}
+function resolveOverlaps(positions) {
+  const ids = [...positions.keys()];
+  for (let iter = 0; iter < 16; iter++) {
+    let moved = false;
+    for (let i = 0; i < ids.length; i++) {
+      for (let j2 = i + 1; j2 < ids.length; j2++) {
+        const idA = ids[i];
+        const idB = ids[j2];
+        const a = positions.get(idA);
+        const b = positions.get(idB);
+        const dx = b.x - a.x;
+        const dy = b.y - a.y;
+        const overlapX = NODE_W + NODE_GAP - Math.abs(dx);
+        const overlapY = NODE_H + NODE_GAP - Math.abs(dy);
+        if (overlapX > 0 && overlapY > 0) {
+          if (overlapX <= overlapY) {
+            const shift = overlapX / 2 + 1;
+            a.x -= dx >= 0 ? shift : -shift;
+            b.x += dx >= 0 ? shift : -shift;
+          } else {
+            const shift = overlapY / 2 + 1;
+            a.y -= dy >= 0 ? shift : -shift;
+            b.y += dy >= 0 ? shift : -shift;
+          }
+          positions.set(idA, a);
+          positions.set(idB, b);
+          moved = true;
+        }
+      }
+    }
+    if (!moved) break;
+  }
 }
 function initSvg() {
   const wrap = el.svg.parentElement;
@@ -4671,6 +4800,7 @@ function spousePath(a, b) {
   return `M${a.x},${a.y} L${b.x},${b.y}`;
 }
 function renderGraph() {
+  hideContextMenu();
   if (!gRoot) initSvg();
   else {
     const wrap = el.svg.parentElement;
@@ -4702,11 +4832,8 @@ function renderGraph() {
     const pos = positions.get(d.id);
     if (!pos) return "translate(0,0)";
     return `translate(${pos.x - NODE_W / 2},${pos.y - NODE_H / 2})`;
-  }).style("touch-action", "manipulation").on("pointerup", (event, d) => {
-    if (event.pointerType === "mouse" && event.button !== 0) return;
-    event.stopPropagation();
-    selectPerson(d.id);
   });
+  bindNodePointerEvents(nodesG);
   nodesG.filter((d) => d.id === state.graph.focus_id).append("text").attr("class", "ft-node-focus-label").attr("x", NODE_W / 2).attr("y", -6).text("\u7126\u70B9");
   nodesG.filter((d) => d.id === state.graph.focus_id).append("rect").attr("class", "ft-node-focus-ring").attr("x", -4).attr("y", -4).attr("width", NODE_W + 8).attr("height", NODE_H + 8).attr("rx", 10).attr("pointer-events", "none");
   nodesG.append("rect").attr("class", (d) => {
@@ -4788,7 +4915,7 @@ async function openEditorForSelection() {
   }
   await selectPerson(id2);
 }
-async function selectPerson(id2) {
+async function selectPerson(id2, { openDrawer = true } = {}) {
   state.selectedId = id2;
   const data = await api(`/persons/${id2}`);
   const p2 = data.person;
@@ -4806,18 +4933,46 @@ async function selectPerson(id2) {
   fillPersonSelect(el.spouse, state.persons, p2.spouse_ids[0] ?? null, p2.id);
   setMsg(el.panelMsg, "");
   renderGraph();
-  openPanel();
+  if (openDrawer && isMobile()) openPanel();
 }
-function openAddDialog(relatedId) {
+function openAddDialog(opts) {
   setMsg(el.addMsg, "");
   el.addForm.reset();
-  fillPersonSelect(el.addRelated, state.persons, relatedId ?? null, null);
-  if (relatedId) {
-    el.addRelationType.value = "child";
-    el.addRelatedWrap.hidden = false;
-    el.addRelated.value = String(relatedId);
+  resetAddDraft();
+  let relatedId = null;
+  let relType = "";
+  if (typeof opts === "number") {
+    relatedId = opts;
+    relType = "child";
+  } else if (opts) {
+    relatedId = opts.relatedId ?? null;
+    relType = opts.relType ?? "";
+  }
+  const prefill = relatedId && relType;
+  if (prefill) {
+    addDraft.relatedId = relatedId;
+    addDraft.relType = relType;
+    const p2 = state.persons.find((x2) => x2.id === relatedId);
+    if (el.addDialogTitle) el.addDialogTitle.textContent = `\u6DFB\u52A0${REL_LABELS[relType]}`;
+    if (el.addRelationHint) {
+      el.addRelationHint.hidden = false;
+      el.addRelationHint.textContent = `\u5C06\u4F5C\u4E3A\u300C${p2?.name ?? ""}\u300D\u7684${REL_LABELS[relType]}\u3002\u82E5\u6811\u4E0A\u672A\u51FA\u73B0\u65B0\u8282\u70B9\uFF0C\u8BF7\u589E\u5927\u5DE5\u5177\u680F\u7684\u300C\u4E0A/\u4E0B\u300D\u4EE3\u6570\u3002`;
+    }
+    if (el.addRelationTypeWrap) el.addRelationTypeWrap.hidden = true;
+    el.addRelatedWrap.hidden = true;
+    el.addGender.value = relType === "father" ? "male" : relType === "mother" ? "female" : "unknown";
   } else {
-    el.addRelatedWrap.hidden = el.addRelationType.value === "";
+    if (el.addDialogTitle) el.addDialogTitle.textContent = "\u6DFB\u52A0\u6210\u5458";
+    if (el.addRelationHint) el.addRelationHint.hidden = true;
+    if (el.addRelationTypeWrap) el.addRelationTypeWrap.hidden = false;
+    fillPersonSelect(el.addRelated, state.persons, relatedId ?? null, null);
+    if (relatedId) {
+      el.addRelationType.value = "child";
+      el.addRelatedWrap.hidden = false;
+      el.addRelated.value = String(relatedId);
+    } else {
+      el.addRelatedWrap.hidden = el.addRelationType.value === "";
+    }
   }
   el.addDialog.showModal();
 }
@@ -4875,7 +5030,8 @@ async function savePerson(e) {
     await loadPersons();
     refreshFocusSelect();
     await loadTree();
-    await selectPerson(id2);
+    await selectPerson(id2, { openDrawer: false });
+    if (isMobile()) closePanel();
   } catch (err) {
     setMsg(el.panelMsg, err.message, "error");
   }
@@ -4908,8 +5064,8 @@ async function createPerson(e) {
     gender: el.addGender.value,
     birth_date: el.addBirth.value.trim() || null
   };
-  const relType = el.addRelationType.value;
-  const relatedId = el.addRelated.value ? Number(el.addRelated.value) : null;
+  const relType = addDraft.relType || el.addRelationType.value;
+  const relatedId = addDraft.relatedId ?? (el.addRelated.value ? Number(el.addRelated.value) : null);
   try {
     if (relType === "child" && relatedId) {
       body.father_id = void 0;
@@ -4953,6 +5109,7 @@ async function createPerson(e) {
       });
     }
     el.addDialog.close();
+    resetAddDraft();
     await loadPersons();
     state.focusId = newId2;
     refreshFocusSelect();
@@ -4992,7 +5149,33 @@ function setupEvents() {
   document.getElementById("ft-add-btn").addEventListener("click", () => openAddDialog());
   document.getElementById("ft-edit-btn")?.addEventListener("click", () => openEditorForSelection());
   document.getElementById("ft-empty-add").addEventListener("click", () => openAddDialog());
-  document.getElementById("ft-add-cancel").addEventListener("click", () => el.addDialog.close());
+  document.getElementById("ft-add-cancel").addEventListener("click", () => {
+    resetAddDraft();
+    el.addDialog.close();
+  });
+  el.contextMenu?.querySelectorAll("[data-action]").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      const action = btn.getAttribute("data-action");
+      const id2 = contextMenuTargetId;
+      hideContextMenu();
+      if (!id2) return;
+      if (action === "detail") {
+        await selectPerson(id2);
+        return;
+      }
+      if (["father", "mother", "child", "spouse"].includes(action)) {
+        openAddDialog({ relatedId: id2, relType: action });
+      }
+    });
+  });
+  document.addEventListener("click", (event) => {
+    if (el.contextMenu?.hidden) return;
+    if (el.contextMenu?.contains(event.target)) return;
+    hideContextMenu();
+  });
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") hideContextMenu();
+  });
   el.addRelationType.addEventListener("change", () => {
     el.addRelatedWrap.hidden = !el.addRelationType.value;
   });
