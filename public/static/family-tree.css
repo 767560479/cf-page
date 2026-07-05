@@ -1,4 +1,4 @@
-/* Family tree — canvas & SVG nodes (Family light theme) */
+/* Family tree — canvas & SVG nodes (Linear dark theme) */
 
 body:has(.ft-page) {
   display: flex;
@@ -41,7 +41,7 @@ body:has(.ft-page) .site-nav {
   min-height: 0;
   height: 100%;
   cursor: grab;
-  background: var(--surface-stone);
+  background: var(--surface-void);
   touch-action: none;
 }
 
@@ -55,11 +55,11 @@ body:has(.ft-page) .site-nav {
 }
 
 .ft-edge--parent {
-  stroke: var(--color-muted-gray);
+  stroke: var(--color-smoke);
 }
 
 .ft-edge--spouse {
-  stroke: var(--color-plum-violet);
+  stroke: var(--color-lavender);
   stroke-dasharray: 6 4;
 }
 
@@ -69,47 +69,47 @@ body:has(.ft-page) .site-nav {
 }
 
 .ft-node--selected .ft-node-card {
-  stroke: var(--color-ember-orange);
-  stroke-width: 3;
+  stroke: var(--color-acid-lime);
+  stroke-width: 2;
 }
 
 .ft-node--highlight:not(.ft-node--selected) .ft-node-card {
-  stroke: var(--color-grass-green);
-  stroke-width: 3;
+  stroke: var(--color-pulse-green);
+  stroke-width: 2;
 }
 
 .ft-node-card {
-  fill: #ffffff;
-  stroke: var(--color-stone-surface);
-  stroke-width: 2;
+  fill: var(--surface-obsidian);
+  stroke: var(--color-graphite);
+  stroke-width: 1;
 }
 
 .ft-node-card--male {
-  fill: rgba(100, 198, 255, 0.35);
-  stroke: var(--color-sky-blue);
-  stroke-width: 2;
+  fill: rgba(2, 184, 204, 0.12);
+  stroke: var(--color-signal-teal);
+  stroke-width: 1;
 }
 
 .ft-node-card--female {
-  fill: rgba(255, 88, 174, 0.28);
-  stroke: var(--color-coral-pink);
-  stroke-width: 2;
+  fill: rgba(139, 92, 246, 0.12);
+  stroke: var(--color-lavender);
+  stroke-width: 1;
 }
 
 .ft-node-avatar-bg {
-  fill: var(--color-stone-surface);
+  fill: var(--color-graphite);
 }
 
 .ft-node-avatar-bg--male {
-  fill: var(--color-sky-blue);
+  fill: var(--color-signal-teal);
 }
 
 .ft-node-avatar-bg--female {
-  fill: var(--color-coral-pink);
+  fill: var(--color-lavender);
 }
 
 .ft-node-avatar-text--on-color {
-  fill: #ffffff;
+  fill: var(--color-paper);
 }
 
 .ft-node-gender-dot {
@@ -117,41 +117,40 @@ body:has(.ft-page) .site-nav {
 }
 
 .ft-node-avatar-text {
-  fill: var(--color-heading-charcoal);
+  fill: var(--color-mist);
   font-size: 14px;
-  font-weight: 600;
-  font-family: var(--font-inter);
+  font-weight: var(--font-weight-w510);
+  font-family: var(--font-inter-variable);
   text-anchor: middle;
   dominant-baseline: central;
 }
 
 .ft-node-name {
-  fill: var(--color-heading-charcoal);
+  fill: var(--color-paper);
   font-size: 13px;
-  font-weight: 600;
-  font-family: var(--font-inter);
+  font-weight: var(--font-weight-w510);
+  font-family: var(--font-inter-variable);
   text-anchor: middle;
 }
 
 .ft-node-dates {
-  fill: var(--color-muted-gray);
+  fill: var(--color-fog);
   font-size: 10px;
-  font-family: var(--font-inter);
+  font-family: var(--font-berkeley-mono);
   text-anchor: middle;
 }
 
 .ft-node-focus-ring {
   fill: none;
-  stroke: var(--color-link-blue);
-  stroke-width: 3;
-  filter: drop-shadow(0 0 4px rgba(0, 134, 252, 0.45));
+  stroke: var(--color-acid-lime);
+  stroke-width: 2;
 }
 
 .ft-node-focus-label {
-  fill: var(--color-link-blue);
+  fill: var(--color-acid-lime);
   font-size: 9px;
-  font-weight: 700;
-  font-family: var(--font-inter);
+  font-weight: var(--font-weight-w510);
+  font-family: var(--font-berkeley-mono);
   text-anchor: middle;
   letter-spacing: 0.04em;
 }
@@ -165,35 +164,35 @@ body:has(.ft-page) .site-nav {
 }
 
 .ft-node-toggle-bg {
-  fill: var(--surface-white);
-  stroke: var(--color-muted-gray);
+  fill: var(--surface-carbon);
+  stroke: var(--color-graphite);
   stroke-width: 1;
 }
 
 .ft-node-toggle:hover .ft-node-toggle-bg {
-  fill: var(--surface-stone);
-  stroke: var(--color-heading-charcoal);
+  fill: var(--surface-obsidian);
+  stroke: var(--color-smoke);
 }
 
 .ft-node-toggle--collapsed .ft-node-toggle-bg {
-  fill: var(--surface-stone);
-  stroke: var(--color-link-blue);
+  fill: var(--surface-obsidian);
+  stroke: var(--color-acid-lime);
 }
 
 .ft-node-toggle-icon {
-  fill: var(--color-heading-charcoal);
+  fill: var(--color-mist);
   font-size: 10px;
-  font-family: var(--font-inter);
+  font-family: var(--font-inter-variable);
   text-anchor: middle;
   dominant-baseline: central;
   pointer-events: none;
 }
 
 .ft-node-collapse-badge {
-  fill: var(--color-link-blue);
+  fill: var(--color-acid-lime);
   font-size: 9px;
-  font-weight: 600;
-  font-family: var(--font-inter);
+  font-weight: var(--font-weight-w510);
+  font-family: var(--font-berkeley-mono);
   text-anchor: start;
   dominant-baseline: central;
   pointer-events: none;
@@ -211,7 +210,6 @@ body:has(.ft-page) .site-nav {
   display: none;
 }
 
-/* Desktop: inline toolbar — primary + tools sheet + badge in one row */
 .ft-toolbar-primary {
   display: contents;
 }
@@ -235,11 +233,11 @@ body:has(.ft-page) .site-nav {
 .ft-toolbar-search {
   width: 100%;
   max-width: 200px;
-  padding: 6px 10px;
-  border: none;
-  border-radius: 6px;
-  box-shadow: inset 0 0 0 1px var(--color-stone-surface);
-  background: var(--surface-white);
+  padding: 8px 12px;
+  border: 1px solid var(--color-graphite);
+  border-radius: var(--radius-buttons);
+  background: rgba(255, 255, 255, 0.02);
+  color: var(--color-mist);
 }
 
 .ft-toolbar-focus select {
@@ -297,7 +295,7 @@ body:has(.ft-page) .site-nav {
     display: none;
     width: 100%;
     padding-top: 8px;
-    border-top: var(--shadow-inset-card);
+    border-top: 0.5px solid var(--color-graphite);
     margin-top: 8px;
   }
 
@@ -324,7 +322,7 @@ body:has(.ft-page) .site-nav {
     justify-content: center;
   }
 
-  .ft-tools-sheet__grid .btn-pill {
+  .ft-tools-sheet__grid .btn {
     width: 100%;
     justify-content: center;
   }
@@ -336,9 +334,9 @@ body:has(.ft-page) .site-nav {
 
 .ft-add-relation-hint {
   margin: 0 0 var(--spacing-16);
-  font-size: var(--text-caption);
-  color: var(--color-body-brown);
-  line-height: 1.47;
+  font-size: var(--text-body-sm);
+  color: var(--color-fog);
+  line-height: var(--leading-body-sm);
 }
 
 .ft-context-menu {
@@ -346,9 +344,10 @@ body:has(.ft-page) .site-nav {
   z-index: 300;
   min-width: 168px;
   padding: var(--spacing-8) 0;
-  background: var(--surface-white);
+  background: var(--surface-carbon);
   border-radius: var(--radius-cards);
-  box-shadow: var(--shadow-dark-card);
+  box-shadow: var(--shadow-xl);
+  border: 0.5px solid var(--color-graphite);
 }
 
 .ft-context-menu[hidden] {
@@ -358,10 +357,10 @@ body:has(.ft-page) .site-nav {
 .ft-context-menu__title {
   margin: 0;
   padding: var(--spacing-8) var(--spacing-16);
-  font-size: var(--text-micro);
-  font-weight: 600;
-  color: var(--color-muted-gray);
-  border-bottom: var(--shadow-inset-card);
+  font-size: 12px;
+  font-weight: var(--font-weight-w510);
+  color: var(--color-fog);
+  border-bottom: 0.5px solid var(--color-graphite);
 }
 
 .ft-context-menu__item {
@@ -372,25 +371,25 @@ body:has(.ft-page) .site-nav {
   font: inherit;
   font-size: var(--text-caption);
   text-align: left;
-  color: var(--color-heading-charcoal);
+  color: var(--color-mist);
   background: transparent;
   border: none;
   cursor: pointer;
 }
 
 .ft-context-menu__item:hover:not(:disabled) {
-  background: var(--surface-stone);
+  background: rgba(255, 255, 255, 0.04);
 }
 
 .ft-context-menu__item:disabled {
-  color: var(--color-muted-gray);
+  color: var(--color-ash);
   cursor: not-allowed;
   opacity: 0.55;
 }
 
 .ft-context-menu__item--detail {
-  border-top: var(--shadow-inset-card);
+  border-top: 0.5px solid var(--color-graphite);
   margin-top: var(--spacing-4);
   padding-top: var(--spacing-12);
-  color: var(--color-link-blue);
+  color: var(--color-acid-lime);
 }

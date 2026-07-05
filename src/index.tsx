@@ -1,12 +1,11 @@
-import { Hono } from 'hono'
-import { renderer } from './renderer'
 import kv from './routes/kv'
 import notes from './routes/notes'
 import family from './routes/family'
-import { CodexLanding } from './pages/codex-landing'
 import { HomePage } from './pages/home'
 import { LabPage } from './pages/lab'
 import { FamilyTreePage } from './pages/family-tree'
+import { Hono } from 'hono'
+import { renderer } from './renderer'
 
 type Bindings = {
   KV: KVNamespace
@@ -23,13 +22,6 @@ app.route('/api/family', family)
 
 app.get('/', (c) => {
   return c.render(<HomePage />, { title: 'cf-page' })
-})
-
-app.get('/codex', (c) => {
-  return c.render(<CodexLanding />, {
-    title: 'Codex — 不只是写代码',
-    css: '/static/codex.css',
-  })
 })
 
 app.get('/lab', (c) => {

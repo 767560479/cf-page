@@ -28,13 +28,6 @@ export const localApps: LocalApp[] = [
     tags: ['KV', 'D1'],
     icon: '🧪',
   },
-  {
-    path: '/codex',
-    title: 'Codex 概念页',
-    description: 'AI 开发协作流程展示页',
-    tags: ['展示'],
-    icon: '⚡',
-  },
 ]
 
 export const externalSites: ExternalSite[] = [

@@ -4825,17 +4825,33 @@ function computeVisibleIds(graph, collapsedIds) {
       memo.set(id2, true);
       return true;
     }
-    if (parents.every((p2) => collapsedIds.has(p2))) {
+    if (parents.some((p2) => collapsedIds.has(p2))) {
       memo.set(id2, false);
       return false;
     }
-    const ok = parents.some((p2) => isVisible(p2) && !collapsedIds.has(p2));
+    const ok = parents.every((p2) => isVisible(p2));
     memo.set(id2, ok);
     return ok;
   }
   const visible = /* @__PURE__ */ new Set();
   for (const id2 of inGraph) {
     if (isVisible(id2)) visible.add(id2);
+  }
+  let changed = true;
+  while (changed) {
+    changed = false;
+    for (const e of graph.edges) {
+      if (e.type !== "spouse") continue;
+      if (!inGraph.has(e.from) || !inGraph.has(e.to)) continue;
+      if (visible.has(e.from) && !visible.has(e.to)) {
+        visible.delete(e.from);
+        changed = true;
+      }
+      if (visible.has(e.to) && !visible.has(e.from)) {
+        visible.delete(e.to);
+        changed = true;
+      }
+    }
   }
   return visible;
 }

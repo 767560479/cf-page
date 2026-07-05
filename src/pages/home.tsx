@@ -1,12 +1,14 @@
 import { externalSites, localApps } from '../data/site-links'
-import { HeroScatter, SiteFooter, SiteNav } from '../components/site-shell'
+import { SiteFooter, SiteNav } from '../components/site-shell'
+
+const TAG_VARIANTS = ['tag-pill--teal', 'tag-pill--violet', 'tag-pill--green'] as const
 
 function TagList({ tags }: { tags?: string[] }) {
   if (!tags?.length) return null
   return (
     <>
-      {tags.map((tag) => (
-        <span class="tag-pill tag-pill--sky" key={tag}>
+      {tags.map((tag, i) => (
+        <span class={`tag-pill ${TAG_VARIANTS[i % TAG_VARIANTS.length]}`} key={tag}>
           {tag}
         </span>
       ))}
@@ -20,12 +22,15 @@ export function HomePage() {
       <SiteNav />
       <div class="page-wrap">
         <section class="page-hero">
-          <HeroScatter side="left" />
           <div class="page-hero__content">
             <h1 class="page-hero__title display">cf-page</h1>
-            <p class="page-hero__subtitle">小工具与实验页面集合 — 像故事书一样，一页一个功能。</p>
+            <p class="page-hero__subtitle">
+              小工具与实验页面集合 — 部署在 Cloudflare Pages 上的功能入口。
+            </p>
+            <a class="page-hero__link" href="/lab">
+              进入实验室 →
+            </a>
           </div>
-          <HeroScatter side="right" />
         </section>
 
         <section class="page-section">

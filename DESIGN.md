@@ -1,85 +1,71 @@
-# Family — Style Reference
-> storybook spread on cream parchment
+# Linear — Style Reference
+> midnight precision instrument
 
-**Theme:** light
+**Theme:** dark
 
-Family speaks in a warm parchment-and-marker language: a cream canvas (#fbfaf9) carries hand-drawn characters and scattered confetti shapes in primary-bright fills, while typography stays calm and utilitarian in Inter. The interface itself is deliberately restrained — inset hairline borders define surfaces rather than shadows — so the cartoon illustrations carry all the emotional weight and the chrome stays quiet. Color functions as semantic markers: near-black for the one serious action, blue and orange for status, gold and green for positive signals, red and pink for destructive/attention. Every screen should feel like a children's storybook spread: generous whitespace, big confident headings, and a few vivid characters punctuating an otherwise monochrome layout.
+Linear's design system is a midnight command center built on near-black surfaces (#08090a) with paper-white type and one electric acid-lime accent (#e4f222) that functions as a functional flashlight — small, high-contrast, and used sparingly to signal action. The interface treats darkness as a substrate rather than a theme: text is crisp white at tight tracking (-0.022em), weights sit in a low 400–510 band rather than bold, and borders are hairline-thin (0.5px) to let geometry do the work that shadows usually would. Components feel precision-machined — 6px and 12px radii, compact 8–12px paddings, and almost no decorative ornament — letting the product UI (issue cards, kanban boards, AI agent panels) be the only visual texture in an otherwise quiet system.
+
+
 
 ## Tokens — Colors
 
 | Name | Value | Token | Role |
 |------|-------|-------|------|
-| Cream Canvas | `#fbfaf9` | `--color-cream-canvas` | Page background, nav surface — warm off-white that reads as paper rather than screen |
-| Stone Surface | `#f2f0ed` | `--color-stone-surface` | Card surfaces, secondary panels, inset border tone — one shade darker than canvas to create depth without shadow |
-| Ink Black | `#121212` | `--color-ink-black` | Headings, primary action fill, dark card surfaces — near-black that stays slightly warm |
-| Heading Charcoal | `#343433` | `--color-heading-charcoal` | Primary text, nav text, decorative strokes — softened black for readable body |
-| Body Brown | `#474645` | `--color-body-brown` | Body copy, secondary text — warm desaturated brown rather than cool gray |
-| Muted Gray | `#7e7e7d` | `--color-muted-gray` | Helper text, inactive nav, tertiary labels |
-| Stone Border | `#e5d5c3` | `--color-stone-border` | Hairline decorative borders on illustrations and shapes |
-| Link Blue | `#0086fc` | `--color-link-blue` | Inline links, feature list text — vivid blue that reads as actionable without being a button |
-| Sky Blue | `#64c6ff` | `--color-sky-blue` | Illustration fill, decorative mascot accents — sky-bright for storybook characters |
-| Alt Blue | `#00b2ff` | `--color-alt-blue` | Secondary illustration fill, icon accents — slightly deeper blue for variation |
-| Grass Green | `#00c978` | `--color-grass-green` | Green text accent for links, tags, and emphasized short phrases. Use as a supporting accent, not as a status color |
-| Mint | `#00ca48` | `--color-mint` | Green wash for highlight backgrounds, decorative bands, and soft emphasis behind content. Use as a supporting accent, not as a status color |
-| Ember Orange | `#ff3e00` | `--color-ember-orange` | Orange text accent for links, tags, and emphasized short phrases |
-| Sun Yellow | `#ffcd6c` | `--color-sun-yellow` | Illustration fill, decorative shapes, mascot coloring |
-| Gold | `#d48f00` | `--color-gold` | Yellow text accent for links, tags, and emphasized short phrases. |
-| Honey | `#ffbb26` | `--color-honey` | Yellow wash for highlight backgrounds, decorative bands, and soft emphasis behind content |
-| Coral Pink | `#ff58ae` | `--color-coral-pink` | Purchase badge fill, decorative illustration accent |
-| Plum Violet | `#9f4fff` | `--color-plum-violet` | Violet wash for highlight backgrounds, decorative bands, and soft emphasis behind content. Do not promote it to the primary CTA color |
-| Alert Red | `#ff2b3a` | `--color-alert-red` | Red wash for highlight backgrounds, decorative bands, and soft emphasis behind content. Use as a supporting accent, not as a status color |
+| Void | `#08090a` | `--color-void` | Page canvas, full-bleed backgrounds — the default everything sits on |
+| Carbon | `#0f1011` | `--color-carbon` | Card surfaces, nav bars — one step above canvas for contained content |
+| Obsidian | `#161718` | `--color-obsidian` | Elevated surfaces, deeper card panels |
+| Graphite | `#23252a` | `--color-graphite` | Subtle borders, dividers, ghost button outlines — low-contrast structural edges |
+| Smoke | `#383b3f` | `--color-smoke` | Hairline borders at higher contrast than graphite — section separators |
+| Ash | `#62666d` | `--color-ash` | Muted body text, inactive icons, secondary metadata |
+| Fog | `#8a8f98` | `--color-fog` | Tertiary text, placeholder copy, icon fills |
+| Mist | `#d0d6e0` | `--color-mist` | Secondary headings, button text on dark surfaces |
+| Bone | `#e5e5e6` | `--color-bone` | Near-white surface fills, high-contrast button text |
+| Paper | `#ffffff` | `--color-paper` | Primary headings, hero type, max-contrast emphasis text |
+| Acid Lime | `#e4f222` | `--color-acid-lime` | Primary action buttons, active nav indicators — electric accent that breaks the monochrome system |
+| Pulse Green | `#27a644` | `--color-pulse-green` | Green outline accent for tags, dividers, and focused UI edges. Use as a supporting accent, not as a status color |
+| Coral Red | `#eb5757` | `--color-coral-red` | Red wash for highlight backgrounds, decorative bands, and soft emphasis behind content. Use as a supporting accent, not as a status color |
+| Signal Teal | `#02b8cc` | `--color-signal-teal` | Decorative accent, informational icon fills |
+| Iris Violet | `#6366f1` | `--color-iris-violet` | Tag/badge fills — soft chromatic punctuation on tags and labels |
+| Lavender | `#8b5cf6` | `--color-lavender` | Secondary tag fills, category indicators |
 
 ## Tokens — Typography
 
-### Family — Display and hero headings — the custom Family typeface at weight 500, letter-spacing tightening to -0.031em at 68px creates a slightly playful, slightly condensed character that defines the brand · `--font-family`
-- **Substitute:** Druk Wide Medium or GT America Compressed Medium
-- **Weights:** 500
-- **Sizes:** 44px, 68px
-- **Line height:** 1.09-1.10
-- **Letter spacing:** -0.031em at 68px, -0.020em at 44px
-- **Role:** Display and hero headings — the custom Family typeface at weight 500, letter-spacing tightening to -0.031em at 68px creates a slightly playful, slightly condensed character that defines the brand
+### Inter Variable — Primary UI and heading typeface — used across nav, body, headings, buttons, cards · `--font-inter-variable`
+- **Substitute:** Inter (variable), or system-ui as fallback
+- **Weights:** 300, 400, 510, 590
+- **Sizes:** 10, 11, 12, 13, 14, 15, 16, 17, 20, 24, 32, 48, 64, 72
+- **Line height:** 1.0–2.75
+- **Letter spacing:** -0.022em at 48–72px, -0.012em at 20–32px, -0.011em at 15px, -0.010em at 13–16px
+- **OpenType features:** `"cv01" on, "ss03" on, "zero" on`
+- **Role:** Primary UI and heading typeface — used across nav, body, headings, buttons, cards
 
-### Inter — Body copy, nav text, card descriptions — Inter at regular weight carries the utility layer; tighter line-heights (1.42-1.53) for running text, generous (1.58) for caption-level · `--font-inter`
-- **Substitute:** Inter (Google Fonts)
+### Berkeley Mono — Code-adjacent UI text — issue IDs (ENG-2703), keyboard shortcuts, monospaced metadata · `--font-berkeley-mono`
+- **Substitute:** JetBrains Mono, IBM Plex Mono, or ui-monospace
 - **Weights:** 400
-- **Sizes:** 12px, 13px, 14px, 15px, 16px, 17px, 19px, 23px, 44px
-- **Line height:** 1.42-1.58
-- **Letter spacing:** -0.0260em, -0.0190em, -0.0160em, -0.0130em, -0.0100em, -0.0090em, -0.0060em, -0.0010em
-- **Role:** Body copy, nav text, card descriptions — Inter at regular weight carries the utility layer; tighter line-heights (1.42-1.53) for running text, generous (1.58) for caption-level
-
-### Inter — Section subheads and emphasised list labels — Inter medium adds weight without changing the geometric personality · `--font-inter`
-- **Substitute:** Inter (Google Fonts)
-- **Weights:** 500
-- **Sizes:** 12px, 13px, 14px, 15px, 16px, 17px, 19px, 23px, 44px
-- **Line height:** 1.09-1.47
-- **Letter spacing:** -0.019em at 23px, -0.009em at 15px
-- **Role:** Section subheads and emphasised list labels — Inter medium adds weight without changing the geometric personality
-
-### Inter — Button labels and emphasized UI text — semi-bold for interactive elements that need to register as tappable · `--font-inter`
-- **Substitute:** Inter (Google Fonts)
-- **Weights:** 600
-- **Sizes:** 12px, 13px, 14px, 15px, 16px, 17px, 19px, 23px, 44px
-- **Line height:** 1.47
-- **Letter spacing:** -0.009em
-- **Role:** Button labels and emphasized UI text — semi-bold for interactive elements that need to register as tappable
+- **Sizes:** 12, 14
+- **Line height:** 1.40–1.71
+- **Letter spacing:** -0.013em
+- **OpenType features:** `"cv01" on, "ss03" on`
+- **Role:** Code-adjacent UI text — issue IDs (ENG-2703), keyboard shortcuts, monospaced metadata
 
 ### Type Scale
 
 | Role | Size | Line Height | Letter Spacing | Token |
 |------|------|-------------|----------------|-------|
-| micro | 12px | 19 | -0.01px | `--text-micro` |
-| caption | 15px | 22 | -0.14px | `--text-caption` |
-| body | 17px | 26 | -0.22px | `--text-body` |
-| subheading | 19px | 27 | -0.3px | `--text-subheading` |
-| heading | 23px | 25 | -0.44px | `--text-heading` |
-| heading-lg | 44px | 53 | -0.88px | `--text-heading-lg` |
-| display | 68px | 75 | -2.1px | `--text-display` |
+| caption | 13px | 1.2 | — | `--text-caption` |
+| body-sm | 15px | 1.6 | -0.165px | `--text-body-sm` |
+| body-lg | 20px | 1.33 | -0.24px | `--text-body-lg` |
+| subheading | 24px | 1.33 | -0.288px | `--text-subheading` |
+| heading-sm | 32px | 1.13 | -0.704px | `--text-heading-sm` |
+| heading | 48px | 1 | -1.056px | `--text-heading` |
+| heading-lg | 64px | 1 | -1.408px | `--text-heading-lg` |
+| display | 72px | 1 | -1.584px | `--text-display` |
 
 ## Tokens — Spacing & Shapes
 
 **Base unit:** 4px
 
-**Density:** comfortable
+**Density:** compact
 
 ### Spacing Scale
 
@@ -94,179 +80,193 @@ Family speaks in a warm parchment-and-marker language: a cream canvas (#fbfaf9) 
 | 28 | 28px | `--spacing-28` |
 | 32 | 32px | `--spacing-32` |
 | 36 | 36px | `--spacing-36` |
+| 40 | 40px | `--spacing-40` |
 | 48 | 48px | `--spacing-48` |
-| 60 | 60px | `--spacing-60` |
-| 76 | 76px | `--spacing-76` |
+| 56 | 56px | `--spacing-56` |
+| 64 | 64px | `--spacing-64` |
 | 80 | 80px | `--spacing-80` |
-| 92 | 92px | `--spacing-92` |
 | 96 | 96px | `--spacing-96` |
-| 104 | 104px | `--spacing-104` |
+| 128 | 128px | `--spacing-128` |
 
 ### Border Radius
 
 | Element | Value |
 |---------|-------|
-| nav | 10px |
-| cards | 10px |
-| icons | 40px |
+| cards | 12px |
 | pills | 9999px |
 | small | 2px |
-| badges | 6px |
-| buttons | 32px |
-| illustration | 72px |
+| badges | 4px |
+| inputs | 6px |
+| buttons | 6px |
 
 ### Shadows
 
 | Name | Value | Token |
 |------|-------|-------|
-| subtle | `color(display-p3 0.94902 0.941176 0.929412) 0px 0px 0px 1...` | `--shadow-subtle` |
-| subtle-2 | `color(display-p3 0.94902 0.941176 0.929412) 0px 0px 0px 0...` | `--shadow-subtle-2` |
-| subtle-3 | `rgba(0, 0, 0, 0.04) 0px 0px 0px 1px` | `--shadow-subtle-3` |
-| lg | `rgba(0, 0, 0, 0.15) 0px 0px 24px 0px` | `--shadow-lg` |
-| sm | `rgba(0, 0, 0, 0.04) 0px 1px 6px 0px, rgba(0, 0, 0, 0.05) ...` | `--shadow-sm` |
+| sm | `rgba(0, 0, 0, 0.4) 0px 2px 4px 0px` | `--shadow-sm` |
+| md | `rgba(0, 0, 0, 0.2) 0px 0px 12px 0px inset` | `--shadow-md` |
+| subtle | `rgb(35, 37, 42) 0px 0px 0px 1px inset` | `--shadow-subtle` |
+| subtle-2 | `rgba(0, 0, 0, 0.2) 0px 0px 0px 1px` | `--shadow-subtle-2` |
+| subtle-3 | `rgba(0, 0, 0, 0.01) 0px 5px 2px 0px, rgba(0, 0, 0, 0.04) ...` | `--shadow-subtle-3` |
+| xl | `rgba(8, 9, 10, 0.6) 0px 4px 32px 0px` | `--shadow-xl` |
+| subtle-4 | `rgba(255, 255, 255, 0.03) 0px 0px 0px 1px inset, rgba(255...` | `--shadow-subtle-4` |
+| subtle-5 | `rgba(0, 0, 0, 0.1) 0px 0px 0px 2px` | `--shadow-subtle-5` |
 
 ### Layout
 
 - **Page max-width:** 1200px
-- **Section gap:** 80-120px
-- **Card padding:** 32px
-- **Element gap:** 8-12px
+- **Section gap:** 96px
+- **Card padding:** 24px
+- **Element gap:** 8px
 
 ## Components
 
-### Hero Illustration Cluster
-**Role:** Decorative character/scatter artwork flanking the hero headline
+### Primary Action Button (Acid Lime)
+**Role:** High-emphasis CTA — the one chromatic button in the system
 
-Hand-drawn cartoon mascots (flower, blob, cat, triangle character) with scattered confetti shapes (stars, coins, hearts, gears, leaves). Uses fills from the accent palette (#64c6ff, #ffcd6c, #00c978, #ff3e00, #ff58ae, #e5d5c3) with thin strokes at #343433. Shapes use organic radii of 40-72px. Two clusters flank a centered text block — they do not overlap the type.
+Background #e4f222, text #08090a, border-radius 6px, padding 10px 16px, Inter 14px / weight 510, letter-spacing -0.011em. Sits as the sole filled chromatic element — every other button on the site is neutral.
 
-### Ghost Nav Button
-**Role:** Secondary header action (Log In)
+### Nav Text Button
+**Role:** Top navigation items
 
-Transparent background, text in #343433, no border, font-size 13-14px Inter 400. Sits flush left of the primary CTA in the top nav.
+Transparent background, text #d0d6e0, padding 8px 12px, Inter 13px / weight 400. No border, no fill — pure typographic nav with underline on hover.
 
-### Dark Pill Button
-**Role:** Primary header CTA (Get Started)
+### Pill Button
+**Role:** Tag chips, status pills, compact action triggers
 
-Background #121212, text white, fully rounded (32px radius), horizontal padding 14px, vertical padding sized to content height (roughly 8-11px). Small, dense, high-contrast — the one moment of darkness in the header.
+Background rgba(255,255,255,0.05), text #d0d6e0, border-radius 9999px, padding 4px 12px, Inter 12–13px / weight 400.
 
-### Sand Pill Button
-**Role:** Secondary page CTA (Watch the Video)
+### Ghost / Outline Button
+**Role:** Secondary actions, less prominent CTAs
 
-Background #f6f4ef (lighter than canvas), text #121212, 32px pill radius, 14px horizontal padding. Pairs beside the dark primary to create tonal contrast.
+Transparent background, border 1px #23252a, text #d0d6e0, border-radius 6px, padding 8px 12px, Inter 13px / weight 400.
 
-### Inline Demo Link
-**Role:** Feature-card watch-the-demo link
+### Sign-up Button (Rounded Pill, Neutral)
+**Role:** High-emphasis nav CTA
 
-Underlined text link, no border, no background padding beyond 4px vertical. Color is #ff3e00 (ember orange) — this is the brand's signature secondary CTA color, used wherever a 'Watch the demo' or 'Manage your collectibles' link sits beneath a feature card. Border-radius 0 to read as text.
+Background #ffffff, text #08090a, border-radius 9999px, padding 8px 16px, Inter 13px / weight 510. White pill against the dark nav bar — the second highest-contrast element after the acid-lime CTA.
 
-### Feature Card (Hairline-Bordered)
-**Role:** Primary card for the 6-feature grid (Easy, Secure, Fast, Powerful, Fun, etc.)
+### Card (Product Screenshot Frame)
+**Role:** Large showcase surface for product UI screenshots
 
-White background (#ffffff), 10px radius, 32px padding on all sides. Border is a 1px inset in #f2f0ed (stone surface) rather than a drop shadow — the card is defined by an interior hairline, giving a pressed-into-paper feel. Cards sit in a 3-column grid with 8-12px gaps. Heading is 23px Inter medium, body is 16-17px Inter 400 in #474645.
+Background #0f1011, border-radius 12px, inset shadow rgb(35,37,42) 0 0 0 1px, padding 24px. Hairline inner border defines the card edge — no outer shadow, no glow.
 
-### Light Tag Surface
-**Role:** Secondary card surface for grouped feature blocks
+### Card (Subtle)
+**Role:** Small content cards, nested panels
 
-Background #fbfaf9 (same as canvas) or #fcfbf9, 12px radius, no shadow, horizontal padding ~23px, vertical padding 14px. Used for the 'Watching Wallets' / 'Wallet Activity' demo blocks. Defines surface through subtle warmth shift rather than contrast.
+Background rgba(255,255,255,0.02), border-radius 6px, shadow rgba(0,0,0,0.4) 0 2px 4px, padding 8px. Almost invisible — the card barely separates from the canvas.
 
-### Dark Feature Card
-**Role:** Dark-mode card for the leftmost action card (Send/Swap/Receive/Purchase)
+### Text Input
+**Role:** Form fields, search inputs
 
-Background #000000, 24px left-only radius (asymmetric), 24px soft drop shadow at rgba(0,0,0,0.15), 4px padding. Houses a stacked list of icon+label rows in white/cream text — the only dark surface on the page, creating strong focal contrast against the cream canvas.
+Background rgba(255,255,255,0.02), border 1px rgba(255,255,255,0.08), text #d0d6e0, border-radius 6px, padding 12px 14px, Inter 14px / weight 400. Focus ring: border brightens to #d0d6e0.
 
-### Action Row (Inside Dark Card)
-**Role:** Send / Swap / Receive / Purchase list item
+### Badge / Status Tag
+**Role:** Issue status, category labels, inline metadata
 
-Each row: circular icon in app-brand color (#0090ff, #9f4fff, #00c978, #ff58ae), label in white Inter 500/600, helper text in muted white. Rows separated by 1-2px gaps. The colorful icons are the chromatic punctuation — the rest stays monochrome.
+Background rgba(255,255,255,0.05), text #8a8f98, border-radius 4px, padding 0px 6px, Inter 12px / weight 400. Color-coded variants use Pulse Green, Coral Red, Iris Violet, or Lavender fills.
 
-### Status Badge Pill
-**Role:** Backing Up / Pending / Completed indicators
+### Logo Mark
+**Role:** Brand identification in nav
 
-Fully rounded pill (9999px radius), background in status hue (mint #00ca48 for backing-up, gold #ffbb26 for pending), text in matching dark or light. Padded ~10-12px horizontal, 6-8px vertical. Sits inside light tag surfaces.
+Linear wordmark + geometric glyph, Inter 16px / weight 510, color #ffffff. Glyph rendered as inline SVG in white.
 
-### Tweet Card
-**Role:** Social proof card in the 'Friends of Family' grid
+### Logo Bar (Customer Strip)
+**Role:** Social proof — customer logos in a horizontal row
 
-White background (#ffffff), 10px radius, 1px inset border in #f2f0ed, 32px padding. Avatar circle 40px, handle in #343433, tweet body in #474645 at 15-16px. X-platform icon top-right. Cards sit in a 4-column grid with horizontal scroll overflow.
+Neutral grey logos (Vercel, Cursor, Oscar, OpenAI, Coinbase, Cash App, Boom, Ramp) at #8a8f98–#d0d6e0, evenly spaced with 48–64px gaps, no card backgrounds.
 
-### Inset-Bordered Surface
-**Role:** Any container that needs subtle definition without shadow
+### Hero Gradient Floor
+**Role:** Atmospheric base under the product screenshot
 
-The signature border technique: 1px inset box-shadow in #f2f0ed creates an interior hairline on white surfaces. No drop shadows on cards — the system relies entirely on inset strokes and tonal shifts to separate layers. This is what gives the page its flat, pressed-into-paper quality.
+Linear gradient from rgb(8,9,10) at 10% to rgb(208,214,224) at 100% — a subtle light wash that grounds the floating product UI against the void.
 
 ## Do's and Don'ts
 
 ### Do
-- Use the custom Family typeface at 44-68px weight 500 for all display and hero headings; never substitute system fonts at this scale
-- Use 10px radius as the default for cards and nav surfaces; use 32-9999px only for pill buttons and badges
-- Build card definition with a 1px inset border in #f2f0ed rather than a drop shadow — the page should feel pressed into paper, not floating
-- Let #ff3e00 carry the 'demo link' and accent text role; keep ember orange for inline links and feature callouts, never as a filled button
-- Set body text in Inter 400 at 16-17px with line-height 1.42-1.53 and letter-spacing -0.013 to -0.016em
-- Use the cream canvas (#fbfaf9) as the base for every full-bleed section; alternate by introducing the #f2f0ed stone surface for grouped card clusters
-- Use illustration clusters of cartoon mascots in primary fills to anchor hero sections; scatter them asymmetrically so the centered text remains the focal point
+- Use Inter Variable with font-feature-settings 'cv01' on, 'ss03' on, 'zero' on — these alternate glyphs define Linear's typographic identity
+- Use #e4f222 exclusively for the single primary action per view — never for decoration, never for secondary buttons
+- Set body text at 16px Inter weight 400 with line-height 1.5 — larger reading sizes (17px+ at weight 590) are reserved for body emphasis blocks
+- Use letter-spacing -0.022em at 48px and above — tight tracking is non-negotiable for display type
+- Set card radius to 12px, button radius to 6px, pill radius to 9999px — three radii is the entire radius vocabulary
+- Use 0.5px hairline borders (#23252a or #383b3f) instead of shadows for surface separation — Linear's elevation comes from borders and subtle inner shadows
+- Keep section gaps at 96px and element gaps at 8px — the 8/12/24/96 spacing ladder is the rhythm
 
 ### Don't
-- Never use a drop shadow larger than rgba(0,0,0,0.04) — the design system rejects heavy elevation
-- Don't use blue (#0086fc) as a filled CTA background; blue is reserved for inline links and list emphasis text
-- Don't introduce gradients — the system is strictly flat with hairline inset borders
-- Don't use Inter at the display sizes — display and hero headings must use the Family typeface at weight 500
-- Don't separate surfaces with white-on-white; always shift toward #f2f0ed stone or toward #121212 black for clear contrast
-- Don't add decoration to pill buttons — dark pill (#121212) and sand pill (#f6f4ef) are the only two pill variants
-- Don't use warm reds (#ff2b3a) for anything beyond destructive/error states; the warm accent slot belongs to #ff3e00
+- Do not use bold weights (700+) — Linear's type scale caps at weight 590, the system deliberately avoids heavy display weights
+- Do not use decorative gradients on buttons, cards, or text — gradients are reserved for the hero atmospheric floor only
+- Do not introduce additional chromatic accent colors as actions — the acid-lime button is the only chromatic UI element
+- Do not use large radii (16px+) on cards or panels — 12px is the max card radius in this system
+- Do not use shadows to separate cards from the canvas — use hairline borders (#23252a) and inner inset shadows instead
+- Do not use chromatic text colors for body copy — all body text sits in the #d0d6e0 / #8a8f98 / #62666d grey scale
+- Do not use Berkeley Mono for headings or marketing copy — it is reserved for issue IDs, keyboard shortcuts, and technical metadata
 
 ## Surfaces
 
 | Level | Name | Value | Purpose |
 |-------|------|-------|---------|
-| 0 | Canvas | `#fbfaf9` | Page background, hero backdrop — warm cream that reads as paper |
-| 1 | Stone | `#f2f0ed` | Inset border tone, secondary card surfaces, subtle surface shifts |
-| 2 | Sand | `#f6f4ef` | Pill button secondary variant, light tag surfaces for demo blocks |
-| 3 | Pure White | `#ffffff` | Feature cards, tweet cards — only on white does the 1px inset hairline register |
-| 4 | Dark Surface | `#121212` | Dark pill buttons, primary CTA — the only dark surface in the system |
-| 5 | Full Black | `#000000` | Dark feature card (Send/Swap stack), shadow base — strongest tonal shift available |
+| 0 | Void | `#08090a` | Page canvas — the default full-bleed background |
+| 1 | Carbon | `#0f1011` | Card surfaces, product screenshot frames, nav containers |
+| 2 | Obsidian | `#161718` | Elevated panels, deeper nested surfaces |
+| 3 | Slate | `#23252a` | Interactive surface tint, ghost button fills, border-adjacent backgrounds |
 
 ## Elevation
 
-- **Feature Card:** `inset 0 0 0 1px #f2f0ed`
-- **Dark Feature Card:** `0 0 24px 0 rgba(0,0,0,0.15)`
-- **Subtle Drop on Cards:** `0 1px 6px 0 rgba(0,0,0,0.04), 0 0 24px 0 rgba(0,0,0,0.05)`
+Elevation in Linear's system is achieved almost entirely through hairline borders (0.5px #23252a or 1px inset #23252a) and subtle dark drop shadows (rgba(0,0,0,0.4) 0 2px 4px) rather than layered shadow stacks. The visual hierarchy comes from the surface-level progression (#08090a → #0f1011 → #161718 → #23252a) and border definition, not from ambient shadow. The acid-lime CTA button uses an inset shadow stack (0px 5px 2px / 0px 3px 2px / 0px 1px 1px) — the only place in the system where a real shadow is applied to a chrome element.
 
 ## Imagery
 
-Illustration is the primary visual language: hand-drawn cartoon mascots (flower with square face, smiling green blob, yellow triangle character, orange cloud, cat) with dot eyes and stick limbs, rendered in flat fills from the accent palette (sky blue #64c6ff, sun yellow #ffcd6c, grass green #00c978, ember orange #ff3e00, coral pink #ff58ae). Scattered confetti shapes (coins, stars, hearts, gears, leaves, lock icons, QR markers) fill the negative space around them. All illustration strokes are #343433 at thin weight. Mascots use generous organic radii (40-72px). The illustrations are full-bleed on the left and right of the hero, then appear as smaller accents inside cards throughout the rest of the page. Photography is absent; phone mockups in the lower section show dark iOS UI screenshots. Icon style is solid filled circles in saturated brand colors, mono-weight.
+Linear's visual language is product-screenshot-first: the hero and section illustrations are real Linear app UI captured at full fidelity — issue cards, kanban boards, AI agent panels, command palettes — placed inside framed card containers with hairline borders. No stock photography, no lifestyle imagery, no abstract illustration. Logos appear as a customer strip in neutral grey (#8a8f98) at uniform size. Icons are minimal line-art SVGs in single-color grey scale. The hero screenshot floats on a subtle linear gradient (dark-to-light) that creates atmospheric depth without literal scenery. Every visual element is a functional artifact of the product itself.
 
 ## Layout
 
-Full-width centered layout with max-width ~1200px for content. Hero is a three-column composition: left illustration cluster, centered headline+subtitle+CTA stack, right illustration cluster — all on the cream canvas. Below the hero, content flows in vertical bands separated by generous whitespace (80-120px section gaps). The 'Explore Ethereum' section uses a 3-column card grid with the dark Send/Swap/Receive card as left-column visual anchor, followed by a second row of three lighter feature cards. A second 3-column grid below shows phone mockups. The 'Friends of Family' section is a horizontally-scrolling 4-column tweet card grid. Navigation is a minimal top bar with logo left, center links, and two pill buttons (ghost + dark) right-aligned — no sidebar, no mega-menu. The overall rhythm alternates quiet centered-text sections with colorful illustration-rich sections.
+Layout is max-width contained at ~1200px, centered, with full-bleed dark backgrounds extending to viewport edges. The hero is a left-aligned oversized headline (64–72px) paired with a right-aligned link CTA, followed by a large product screenshot that bleeds beyond the max-width slightly. Section rhythm alternates between text-left/image-right 2-column compositions and full-width product showcase bands, separated by 96px vertical gaps. The customer logo strip is a single horizontal row. The page never uses 3-column card grids or masonry — information density stays low, with most sections using generous whitespace and a single focal point per screen. Navigation is a fixed top bar with left-aligned logo and right-aligned links, no sidebar, no mega-menu.
 
 ## Agent Prompt Guide
 
-Quick Color Reference:
-- text: #343433 (heading), #474645 (body)
-- background: #fbfaf9 (canvas)
-- border: inset 1px #f2f0ed
-- accent (links/demo): #ff3e00
-- accent (features): #0086fc
-- primary action: #121212 (filled action)
+**Quick Color Reference:**
+- text (primary heading): #ffffff
+- text (body): #d0d6e0
+- text (muted): #8a8f98
+- background (canvas): #08090a
+- background (card): #0f1011
+- border (hairline): #23252a
+- accent (CTA): #e4f222
+- primary action: #e4f222 (filled action)
 
-3-5 Example Component Prompts:
-1. Create a Primary Action Button: #121212 background, #fbfaf9 text, 9999px radius, compact pill padding. Use this filled treatment for the main CTA.
+**3-5 Example Component Prompts:**
 
-2. Create a feature card grid (3 columns): white cards (#ffffff), 10px radius, 1px inset border #f2f0ed, 32px padding all sides. Heading at 23px Inter 500, #343433. Body at 16px Inter 400, #474645. 8-12px gap between cards. Underneath each card, an ember-orange (#ff3e00) inline 'Watch the demo' link with underline.
+1. **Hero headline block:** Full-bleed #08090a canvas. Headline at 64px Inter Variable weight 510, color #ffffff, letter-spacing -0.022em, line-height 1.0. Subtext at 16px Inter weight 400, color #8a8f98. No button — secondary link text in #d0d6e0 with arrow glyph.
 
-3. Create a dark feature card: background #000000, 24px left-radius (asymmetric), 24px soft shadow at rgba(0,0,0,0.15). Inside, stacked rows each with a 40px circular icon (colors #0090ff, #9f4fff, #00ca48, #ff58ae), label in white Inter 600, helper text in rgba(255,255,255,0.6) at 13px.
+2. **Product screenshot card:** Background #0f1011, border-radius 12px, inset border 1px #23252a via box-shadow, padding 24px. Contains a simulated app UI at full opacity over the card surface. No outer drop shadow.
 
-4. Create a status badge pill: fully rounded (9999px radius), background #00ca48 (mint) or #ffbb26 (honey), text in #121212 or #ffffff depending on contrast, 10-12px horizontal padding, 6-8px vertical padding. Sits inside a #fcfbf9 light surface with 12px radius.
+3. **Acid-lime primary action button:** Background #e4f222, text #08090a, border-radius 6px, padding 10px 16px, Inter 14px weight 510, letter-spacing -0.011em. Only one per view.
 
-5. Create a tweet card: white (#ffffff) background, 10px radius, 1px inset border #f2f0ed, 32px padding. 40px circular avatar, handle in #343433 at 15px Inter 600, body in #474645 at 15px Inter 400. X-platform icon in top-right corner. 3-4 cards per row with horizontal scroll.
+4. **Nav top bar:** Background #08090a (transparent over canvas), padding 16px horizontal, max-width 1200px centered. Logo wordmark #ffffff at 16px weight 510 left-aligned. Nav links #d0d6e0 at 13px weight 400, 8px gaps. Right-aligned white pill sign-up button: bg #ffffff, text #08090a, border-radius 9999px, padding 8px 16px.
+
+5. **Status badge row:** Horizontal flex, 8px gap. Each badge: background rgba(255,255,255,0.05), text #8a8f98, border-radius 4px, padding 0px 6px, Inter 12px weight 400. Color-coded variants: #27a644 for success, #eb5757 for error, #6366f1 for tags.
+
+## Type Scale Detail
+
+Display: 72px / 510 / lh 1.0 / ls -0.022em
+Hero: 64px / 510 / lh 1.0 / ls -0.022em
+Section heading: 48px / 510 / lh 1.0 / ls -0.022em
+Subheading: 32px / 400 / lh 1.13 / ls -0.022em
+Heading: 24px / 400 / lh 1.33 / ls -0.012em
+Body emphasis: 20px / 590 / lh 1.33 / ls -0.012em
+Body large: 17px / 590 / lh 1.6 / ls default
+Body: 16px / 400 / lh 1.5 / ls default
+Body small: 15px / 400 / lh 1.6 / ls -0.011em
+Caption: 13px / 400 / lh 1.2 / ls default
+Label: 12px / 400 / lh 1.4 / ls default
+Micro: 10px / 510 / lh 1.5 / ls default
 
 ## Similar Brands
 
-- **Phantom (crypto wallet)** — Same storybook illustration style with cartoon mascots on a light canvas, playful tone with utility-grade Inter typography
-- **Rainbow Wallet** — Similar cream-toned palette with playful illustrated characters and restrained typography for a crypto audience
-- **Stripe** — Same hairline-bordered card aesthetic, inset 1px borders instead of shadows, generous whitespace and quiet interface chrome
-- **Linear** — Same restrained typography hierarchy with custom display face over Inter body, minimal-elevation card system with deliberate restraint
-- **Coinbase** — Same approach of using saturated brand colors as small accents against an otherwise quiet, near-monochrome interface
+- **Vercel** — Same dark-canvas-first approach with hairline borders, tight Inter typography, and product-screenshot-as-hero layout — both treat the product UI as the visual content rather than illustration
+- **Cursor** — Identical midnight dark mode with acid-lime accent CTA, compact Inter type at 400–510 weights, and product-screenshot showcase cards at 12px radius
+- **Raycast** — Shared dark precision-instrument aesthetic — compact spacing, 6px button radius, monochromatic chrome with a single functional accent color for active states
+- **Framer** — Same dark-canvas layout language with large 48–64px Inter headings at tight tracking, product-screenshot hero cards, and minimal ornament between sections
 
 ## Quick Start
 
@@ -275,57 +275,57 @@ Quick Color Reference:
 ```css
 :root {
   /* Colors */
-  --color-cream-canvas: #fbfaf9;
-  --color-stone-surface: #f2f0ed;
-  --color-ink-black: #121212;
-  --color-heading-charcoal: #343433;
-  --color-body-brown: #474645;
-  --color-muted-gray: #7e7e7d;
-  --color-stone-border: #e5d5c3;
-  --color-link-blue: #0086fc;
-  --color-sky-blue: #64c6ff;
-  --color-alt-blue: #00b2ff;
-  --color-grass-green: #00c978;
-  --color-mint: #00ca48;
-  --color-ember-orange: #ff3e00;
-  --color-sun-yellow: #ffcd6c;
-  --color-gold: #d48f00;
-  --color-honey: #ffbb26;
-  --color-coral-pink: #ff58ae;
-  --color-plum-violet: #9f4fff;
-  --color-alert-red: #ff2b3a;
+  --color-void: #08090a;
+  --color-carbon: #0f1011;
+  --color-obsidian: #161718;
+  --color-graphite: #23252a;
+  --color-smoke: #383b3f;
+  --color-ash: #62666d;
+  --color-fog: #8a8f98;
+  --color-mist: #d0d6e0;
+  --color-bone: #e5e5e6;
+  --color-paper: #ffffff;
+  --color-acid-lime: #e4f222;
+  --color-pulse-green: #27a644;
+  --color-coral-red: #eb5757;
+  --color-signal-teal: #02b8cc;
+  --color-iris-violet: #6366f1;
+  --color-lavender: #8b5cf6;
 
   /* Typography — Font Families */
-  --font-family: 'Family', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --font-inter: 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-inter-variable: 'Inter Variable', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-berkeley-mono: 'Berkeley Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 
   /* Typography — Scale */
-  --text-micro: 12px;
-  --leading-micro: 19;
-  --tracking-micro: -0.01px;
-  --text-caption: 15px;
-  --leading-caption: 22;
-  --tracking-caption: -0.14px;
-  --text-body: 17px;
-  --leading-body: 26;
-  --tracking-body: -0.22px;
-  --text-subheading: 19px;
-  --leading-subheading: 27;
-  --tracking-subheading: -0.3px;
-  --text-heading: 23px;
-  --leading-heading: 25;
-  --tracking-heading: -0.44px;
-  --text-heading-lg: 44px;
-  --leading-heading-lg: 53;
-  --tracking-heading-lg: -0.88px;
-  --text-display: 68px;
-  --leading-display: 75;
-  --tracking-display: -2.1px;
+  --text-caption: 13px;
+  --leading-caption: 1.2;
+  --text-body-sm: 15px;
+  --leading-body-sm: 1.6;
+  --tracking-body-sm: -0.165px;
+  --text-body-lg: 20px;
+  --leading-body-lg: 1.33;
+  --tracking-body-lg: -0.24px;
+  --text-subheading: 24px;
+  --leading-subheading: 1.33;
+  --tracking-subheading: -0.288px;
+  --text-heading-sm: 32px;
+  --leading-heading-sm: 1.13;
+  --tracking-heading-sm: -0.704px;
+  --text-heading: 48px;
+  --leading-heading: 1;
+  --tracking-heading: -1.056px;
+  --text-heading-lg: 64px;
+  --leading-heading-lg: 1;
+  --tracking-heading-lg: -1.408px;
+  --text-display: 72px;
+  --leading-display: 1;
+  --tracking-display: -1.584px;
 
   /* Typography — Weights */
+  --font-weight-light: 300;
   --font-weight-regular: 400;
-  --font-weight-medium: 500;
-  --font-weight-semibold: 600;
+  --font-weight-w510: 510;
+  --font-weight-w590: 590;
 
   /* Spacing */
   --spacing-unit: 4px;
@@ -338,55 +338,52 @@ Quick Color Reference:
   --spacing-28: 28px;
   --spacing-32: 32px;
   --spacing-36: 36px;
+  --spacing-40: 40px;
   --spacing-48: 48px;
-  --spacing-60: 60px;
-  --spacing-76: 76px;
+  --spacing-56: 56px;
+  --spacing-64: 64px;
   --spacing-80: 80px;
-  --spacing-92: 92px;
   --spacing-96: 96px;
-  --spacing-104: 104px;
+  --spacing-128: 128px;
 
   /* Layout */
   --page-max-width: 1200px;
-  --section-gap: 80-120px;
-  --card-padding: 32px;
-  --element-gap: 8-12px;
+  --section-gap: 96px;
+  --card-padding: 24px;
+  --element-gap: 8px;
 
   /* Border Radius */
   --radius-sm: 2px;
   --radius-md: 6px;
-  --radius-lg: 10px;
-  --radius-2xl: 17px;
-  --radius-3xl: 24px;
-  --radius-3xl-2: 32px;
-  --radius-3xl-3: 40px;
-  --radius-full: 72px;
+  --radius-xl: 12px;
+  --radius-2xl: 16px;
+  --radius-2xl-2: 22px;
+  --radius-full: 400px;
   --radius-full-2: 9999px;
 
   /* Named Radii */
-  --radius-nav: 10px;
-  --radius-cards: 10px;
-  --radius-icons: 40px;
+  --radius-cards: 12px;
   --radius-pills: 9999px;
   --radius-small: 2px;
-  --radius-badges: 6px;
-  --radius-buttons: 32px;
-  --radius-illustration: 72px;
+  --radius-badges: 4px;
+  --radius-inputs: 6px;
+  --radius-buttons: 6px;
 
   /* Shadows */
-  --shadow-subtle: color(display-p3 0.94902 0.941176 0.929412) 0px 0px 0px 1px inset;
-  --shadow-subtle-2: color(display-p3 0.94902 0.941176 0.929412) 0px 0px 0px 0px inset;
-  --shadow-subtle-3: rgba(0, 0, 0, 0.04) 0px 0px 0px 1px;
-  --shadow-lg: rgba(0, 0, 0, 0.15) 0px 0px 24px 0px;
-  --shadow-sm: rgba(0, 0, 0, 0.04) 0px 1px 6px 0px, rgba(0, 0, 0, 0.05) 0px 0px 24px 0px;
+  --shadow-sm: rgba(0, 0, 0, 0.4) 0px 2px 4px 0px;
+  --shadow-md: rgba(0, 0, 0, 0.2) 0px 0px 12px 0px inset;
+  --shadow-subtle: rgb(35, 37, 42) 0px 0px 0px 1px inset;
+  --shadow-subtle-2: rgba(0, 0, 0, 0.2) 0px 0px 0px 1px;
+  --shadow-subtle-3: rgba(0, 0, 0, 0.01) 0px 5px 2px 0px, rgba(0, 0, 0, 0.04) 0px 3px 2px 0px, rgba(0, 0, 0, 0.07) 0px 1px 1px 0px, rgba(0, 0, 0, 0.08) 0px 0px 1px 0px;
+  --shadow-xl: rgba(8, 9, 10, 0.6) 0px 4px 32px 0px;
+  --shadow-subtle-4: rgba(255, 255, 255, 0.03) 0px 0px 0px 1px inset, rgba(255, 255, 255, 0.04) 0px 1px 0px 0px inset, rgba(0, 0, 0, 0.6) 0px 0px 0px 1px, rgba(0, 0, 0, 0.1) 0px 4px 4px 0px;
+  --shadow-subtle-5: rgba(0, 0, 0, 0.1) 0px 0px 0px 2px;
 
   /* Surfaces */
-  --surface-canvas: #fbfaf9;
-  --surface-stone: #f2f0ed;
-  --surface-sand: #f6f4ef;
-  --surface-pure-white: #ffffff;
-  --surface-dark-surface: #121212;
-  --surface-full-black: #000000;
+  --surface-void: #08090a;
+  --surface-carbon: #0f1011;
+  --surface-obsidian: #161718;
+  --surface-slate: #23252a;
 }
 ```
 
@@ -395,52 +392,51 @@ Quick Color Reference:
 ```css
 @theme {
   /* Colors */
-  --color-cream-canvas: #fbfaf9;
-  --color-stone-surface: #f2f0ed;
-  --color-ink-black: #121212;
-  --color-heading-charcoal: #343433;
-  --color-body-brown: #474645;
-  --color-muted-gray: #7e7e7d;
-  --color-stone-border: #e5d5c3;
-  --color-link-blue: #0086fc;
-  --color-sky-blue: #64c6ff;
-  --color-alt-blue: #00b2ff;
-  --color-grass-green: #00c978;
-  --color-mint: #00ca48;
-  --color-ember-orange: #ff3e00;
-  --color-sun-yellow: #ffcd6c;
-  --color-gold: #d48f00;
-  --color-honey: #ffbb26;
-  --color-coral-pink: #ff58ae;
-  --color-plum-violet: #9f4fff;
-  --color-alert-red: #ff2b3a;
+  --color-void: #08090a;
+  --color-carbon: #0f1011;
+  --color-obsidian: #161718;
+  --color-graphite: #23252a;
+  --color-smoke: #383b3f;
+  --color-ash: #62666d;
+  --color-fog: #8a8f98;
+  --color-mist: #d0d6e0;
+  --color-bone: #e5e5e6;
+  --color-paper: #ffffff;
+  --color-acid-lime: #e4f222;
+  --color-pulse-green: #27a644;
+  --color-coral-red: #eb5757;
+  --color-signal-teal: #02b8cc;
+  --color-iris-violet: #6366f1;
+  --color-lavender: #8b5cf6;
 
   /* Typography */
-  --font-family: 'Family', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --font-inter: 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-inter-variable: 'Inter Variable', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-berkeley-mono: 'Berkeley Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 
   /* Typography — Scale */
-  --text-micro: 12px;
-  --leading-micro: 19;
-  --tracking-micro: -0.01px;
-  --text-caption: 15px;
-  --leading-caption: 22;
-  --tracking-caption: -0.14px;
-  --text-body: 17px;
-  --leading-body: 26;
-  --tracking-body: -0.22px;
-  --text-subheading: 19px;
-  --leading-subheading: 27;
-  --tracking-subheading: -0.3px;
-  --text-heading: 23px;
-  --leading-heading: 25;
-  --tracking-heading: -0.44px;
-  --text-heading-lg: 44px;
-  --leading-heading-lg: 53;
-  --tracking-heading-lg: -0.88px;
-  --text-display: 68px;
-  --leading-display: 75;
-  --tracking-display: -2.1px;
+  --text-caption: 13px;
+  --leading-caption: 1.2;
+  --text-body-sm: 15px;
+  --leading-body-sm: 1.6;
+  --tracking-body-sm: -0.165px;
+  --text-body-lg: 20px;
+  --leading-body-lg: 1.33;
+  --tracking-body-lg: -0.24px;
+  --text-subheading: 24px;
+  --leading-subheading: 1.33;
+  --tracking-subheading: -0.288px;
+  --text-heading-sm: 32px;
+  --leading-heading-sm: 1.13;
+  --tracking-heading-sm: -0.704px;
+  --text-heading: 48px;
+  --leading-heading: 1;
+  --tracking-heading: -1.056px;
+  --text-heading-lg: 64px;
+  --leading-heading-lg: 1;
+  --tracking-heading-lg: -1.408px;
+  --text-display: 72px;
+  --leading-display: 1;
+  --tracking-display: -1.584px;
 
   /* Spacing */
   --spacing-4: 4px;
@@ -452,30 +448,31 @@ Quick Color Reference:
   --spacing-28: 28px;
   --spacing-32: 32px;
   --spacing-36: 36px;
+  --spacing-40: 40px;
   --spacing-48: 48px;
-  --spacing-60: 60px;
-  --spacing-76: 76px;
+  --spacing-56: 56px;
+  --spacing-64: 64px;
   --spacing-80: 80px;
-  --spacing-92: 92px;
   --spacing-96: 96px;
-  --spacing-104: 104px;
+  --spacing-128: 128px;
 
   /* Border Radius */
   --radius-sm: 2px;
   --radius-md: 6px;
-  --radius-lg: 10px;
-  --radius-2xl: 17px;
-  --radius-3xl: 24px;
-  --radius-3xl-2: 32px;
-  --radius-3xl-3: 40px;
-  --radius-full: 72px;
+  --radius-xl: 12px;
+  --radius-2xl: 16px;
+  --radius-2xl-2: 22px;
+  --radius-full: 400px;
   --radius-full-2: 9999px;
 
   /* Shadows */
-  --shadow-subtle: color(display-p3 0.94902 0.941176 0.929412) 0px 0px 0px 1px inset;
-  --shadow-subtle-2: color(display-p3 0.94902 0.941176 0.929412) 0px 0px 0px 0px inset;
-  --shadow-subtle-3: rgba(0, 0, 0, 0.04) 0px 0px 0px 1px;
-  --shadow-lg: rgba(0, 0, 0, 0.15) 0px 0px 24px 0px;
-  --shadow-sm: rgba(0, 0, 0, 0.04) 0px 1px 6px 0px, rgba(0, 0, 0, 0.05) 0px 0px 24px 0px;
+  --shadow-sm: rgba(0, 0, 0, 0.4) 0px 2px 4px 0px;
+  --shadow-md: rgba(0, 0, 0, 0.2) 0px 0px 12px 0px inset;
+  --shadow-subtle: rgb(35, 37, 42) 0px 0px 0px 1px inset;
+  --shadow-subtle-2: rgba(0, 0, 0, 0.2) 0px 0px 0px 1px;
+  --shadow-subtle-3: rgba(0, 0, 0, 0.01) 0px 5px 2px 0px, rgba(0, 0, 0, 0.04) 0px 3px 2px 0px, rgba(0, 0, 0, 0.07) 0px 1px 1px 0px, rgba(0, 0, 0, 0.08) 0px 0px 1px 0px;
+  --shadow-xl: rgba(8, 9, 10, 0.6) 0px 4px 32px 0px;
+  --shadow-subtle-4: rgba(255, 255, 255, 0.03) 0px 0px 0px 1px inset, rgba(255, 255, 255, 0.04) 0px 1px 0px 0px inset, rgba(0, 0, 0, 0.6) 0px 0px 0px 1px, rgba(0, 0, 0, 0.1) 0px 4px 4px 0px;
+  --shadow-subtle-5: rgba(0, 0, 0, 0.1) 0px 0px 0px 2px;
 }
 ```

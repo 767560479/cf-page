@@ -1,59 +1,96 @@
 :root {
-  --color-cream-canvas: #fbfaf9;
-  --color-stone-surface: #f2f0ed;
-  --color-ink-black: #121212;
-  --color-heading-charcoal: #343433;
-  --color-body-brown: #474645;
-  --color-muted-gray: #7e7e7d;
-  --color-stone-border: #e5d5c3;
-  --color-link-blue: #0086fc;
-  --color-sky-blue: #64c6ff;
-  --color-alt-blue: #00b2ff;
-  --color-grass-green: #00c978;
-  --color-mint: #00ca48;
-  --color-ember-orange: #ff3e00;
-  --color-sun-yellow: #ffcd6c;
-  --color-gold: #d48f00;
-  --color-honey: #ffbb26;
-  --color-coral-pink: #ff58ae;
-  --color-plum-violet: #9f4fff;
-  --color-alert-red: #ff2b3a;
+  /* Colors */
+  --color-void: #08090a;
+  --color-carbon: #0f1011;
+  --color-obsidian: #161718;
+  --color-graphite: #23252a;
+  --color-smoke: #383b3f;
+  --color-ash: #62666d;
+  --color-fog: #8a8f98;
+  --color-mist: #d0d6e0;
+  --color-bone: #e5e5e6;
+  --color-paper: #ffffff;
+  --color-acid-lime: #e4f222;
+  --color-pulse-green: #27a644;
+  --color-coral-red: #eb5757;
+  --color-signal-teal: #02b8cc;
+  --color-iris-violet: #6366f1;
+  --color-lavender: #8b5cf6;
 
-  --font-display: 'Barlow Condensed', ui-sans-serif, system-ui, sans-serif;
-  --font-inter: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  /* Typography */
+  --font-inter-variable: 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-berkeley-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 
-  --text-micro: 0.75rem;
-  --text-caption: 0.9375rem;
-  --text-body: 1.0625rem;
-  --text-subheading: 1.1875rem;
-  --text-heading: 1.4375rem;
-  --text-heading-lg: 2.75rem;
-  --text-display: clamp(2.5rem, 6vw, 4.25rem);
+  --text-caption: 13px;
+  --leading-caption: 1.2;
+  --text-body-sm: 15px;
+  --leading-body-sm: 1.6;
+  --tracking-body-sm: -0.165px;
+  --text-body: 16px;
+  --leading-body: 1.5;
+  --text-body-lg: 20px;
+  --leading-body-lg: 1.33;
+  --tracking-body-lg: -0.24px;
+  --text-subheading: 24px;
+  --leading-subheading: 1.33;
+  --tracking-subheading: -0.288px;
+  --text-heading-sm: 32px;
+  --leading-heading-sm: 1.13;
+  --tracking-heading-sm: -0.704px;
+  --text-heading: 48px;
+  --leading-heading: 1;
+  --tracking-heading: -1.056px;
+  --text-heading-lg: 64px;
+  --leading-heading-lg: 1;
+  --tracking-heading-lg: -1.408px;
+  --text-display: clamp(2.5rem, 6vw, 4.5rem);
+  --leading-display: 1;
+  --tracking-display: -1.584px;
 
+  --font-weight-light: 300;
+  --font-weight-regular: 400;
+  --font-weight-w510: 510;
+  --font-weight-w590: 590;
+
+  /* Spacing */
+  --spacing-4: 4px;
   --spacing-8: 8px;
   --spacing-12: 12px;
   --spacing-16: 16px;
+  --spacing-20: 20px;
   --spacing-24: 24px;
   --spacing-32: 32px;
   --spacing-48: 48px;
+  --spacing-64: 64px;
   --spacing-80: 80px;
   --spacing-96: 96px;
+  --spacing-128: 128px;
 
+  /* Layout */
   --page-max-width: 1200px;
-  --card-padding: 32px;
-  --radius-cards: 10px;
-  --radius-buttons: 32px;
+  --section-gap: 96px;
+  --card-padding: 24px;
+  --element-gap: 8px;
+
+  /* Border Radius */
+  --radius-small: 2px;
+  --radius-badges: 4px;
+  --radius-buttons: 6px;
+  --radius-cards: 12px;
   --radius-pills: 9999px;
-  --radius-icons: 40px;
-  --radius-badges: 6px;
 
-  --shadow-inset-card: inset 0 0 0 1px var(--color-stone-surface);
-  --shadow-dark-card: 0 0 24px 0 rgba(0, 0, 0, 0.15);
+  /* Shadows */
+  --shadow-sm: rgba(0, 0, 0, 0.4) 0px 2px 4px 0px;
+  --shadow-md: rgba(0, 0, 0, 0.2) 0px 0px 12px 0px inset;
+  --shadow-subtle: rgb(35, 37, 42) 0px 0px 0px 1px inset;
+  --shadow-subtle-2: rgba(0, 0, 0, 0.2) 0px 0px 0px 1px;
+  --shadow-xl: rgba(8, 9, 10, 0.6) 0px 4px 32px 0px;
 
-  --surface-canvas: var(--color-cream-canvas);
-  --surface-stone: var(--color-stone-surface);
-  --surface-sand: #f6f4ef;
-  --surface-white: #ffffff;
+  /* Surfaces */
+  --surface-void: var(--color-void);
+  --surface-carbon: var(--color-carbon);
+  --surface-obsidian: var(--color-obsidian);
+  --surface-slate: var(--color-graphite);
 }
 
 *,
@@ -64,26 +101,32 @@
 
 body {
   margin: 0;
-  font-family: var(--font-inter);
+  font-family: var(--font-inter-variable);
   font-size: var(--text-body);
-  line-height: 1.53;
-  letter-spacing: -0.016em;
-  color: var(--color-body-brown);
-  background: var(--surface-canvas);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--leading-body);
+  font-feature-settings: 'cv01' on, 'ss03' on, 'zero' on;
+  color: var(--color-mist);
+  background: var(--surface-void);
   -webkit-font-smoothing: antialiased;
 }
 
 a {
-  color: var(--color-link-blue);
+  color: var(--color-mist);
 }
 
 h1,
 h2,
 h3,
 .display {
-  font-family: var(--font-display);
-  font-weight: 500;
-  color: var(--color-heading-charcoal);
-  letter-spacing: -0.02em;
-  line-height: 1.1;
+  font-family: var(--font-inter-variable);
+  font-weight: var(--font-weight-w510);
+  color: var(--color-paper);
+  font-feature-settings: 'cv01' on, 'ss03' on, 'zero' on;
+}
+
+code {
+  font-family: var(--font-berkeley-mono);
+  font-size: 0.9em;
+  letter-spacing: -0.013em;
 }

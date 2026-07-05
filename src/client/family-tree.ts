@@ -445,12 +445,12 @@ function computeVisibleIds(graph, collapsedIds) {
       memo.set(id, true)
       return true
     }
-    // 全部父母均收起 → 隐藏该子女（单父母/双父母均适用）
-    if (parents.every((p) => collapsedIds.has(p))) {
+    // 任一父母收起即隐藏子女（双父母共享子女同样适用）
+    if (parents.some((p) => collapsedIds.has(p))) {
       memo.set(id, false)
       return false
     }
-    const ok = parents.some((p) => isVisible(p) && !collapsedIds.has(p))
+    const ok = parents.every((p) => isVisible(p))
     memo.set(id, ok)
     return ok
   }
@@ -459,6 +459,24 @@ function computeVisibleIds(graph, collapsedIds) {
   for (const id of inGraph) {
     if (isVisible(id)) visible.add(id)
   }
+
+  let changed = true
+  while (changed) {
+    changed = false
+    for (const e of graph.edges) {
+      if (e.type !== 'spouse') continue
+      if (!inGraph.has(e.from) || !inGraph.has(e.to)) continue
+      if (visible.has(e.from) && !visible.has(e.to)) {
+        visible.delete(e.from)
+        changed = true
+      }
+      if (visible.has(e.to) && !visible.has(e.from)) {
+        visible.delete(e.to)
+        changed = true
+      }
+    }
+  }
+
   return visible
 }
 

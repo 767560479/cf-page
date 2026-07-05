@@ -23,7 +23,7 @@ export function FamilyTreePage() {
           <button
             type="button"
             id="ft-tools-toggle"
-            class="btn-pill btn-pill--sand ft-tools-toggle"
+            class="btn btn-ghost ft-tools-toggle"
             aria-expanded="false"
             aria-controls="ft-tools-sheet"
           >
@@ -42,27 +42,27 @@ export function FamilyTreePage() {
               <input id="ft-gen-down" type="number" min="0" max="10" value="3" />
             </label>
             <div class="ft-tools-sheet__zoom">
-              <button type="button" id="ft-zoom-out" class="btn-pill btn-pill--sand" title="缩小">
+              <button type="button" id="ft-zoom-out" class="btn btn-ghost" title="缩小">
                 −
               </button>
               <span id="ft-zoom-label" class="toolbar-field ft-tools-zoom-label">100%</span>
-              <button type="button" id="ft-zoom-in" class="btn-pill btn-pill--sand" title="放大">
+              <button type="button" id="ft-zoom-in" class="btn btn-ghost" title="放大">
                 +
               </button>
             </div>
-            <button type="button" id="ft-fit-btn" class="btn-pill btn-pill--sand">
+            <button type="button" id="ft-fit-btn" class="btn btn-ghost">
               适应屏幕
             </button>
-            <button type="button" id="ft-expand-all" class="btn-pill btn-pill--sand">
+            <button type="button" id="ft-expand-all" class="btn btn-ghost">
               全部展开
             </button>
-            <button type="button" id="ft-collapse-all" class="btn-pill btn-pill--sand">
+            <button type="button" id="ft-collapse-all" class="btn btn-ghost">
               全部收起
             </button>
-            <button type="button" id="ft-edit-btn" class="btn-pill btn-pill--sand ft-edit-btn">
+            <button type="button" id="ft-edit-btn" class="btn btn-ghost ft-edit-btn">
               编辑成员
             </button>
-            <button type="button" id="ft-add-btn" class="btn-pill btn-pill--dark">
+            <button type="button" id="ft-add-btn" class="btn btn-primary">
               + 添加成员
             </button>
           </div>
@@ -79,7 +79,7 @@ export function FamilyTreePage() {
         <div class="split-layout__main ft-canvas-wrap">
           <div id="ft-empty" class="empty-state" hidden>
             <p>还没有家族成员</p>
-            <button type="button" id="ft-empty-add" class="btn-pill btn-pill--dark">
+            <button type="button" id="ft-empty-add" class="btn btn-primary">
               添加第一位祖先
             </button>
           </div>
@@ -101,7 +101,7 @@ export function FamilyTreePage() {
           <form id="ft-detail-form" class="form" hidden>
             <div class="panel-header">
               <h2>成员详情</h2>
-              <button type="button" id="ft-focus-here" class="btn-pill btn-pill--sand" style="padding:4px 10px;font-size:12px;">
+              <button type="button" id="ft-focus-here" class="btn btn-ghost btn-sm">
                 设为焦点
               </button>
             </div>
@@ -158,10 +158,10 @@ export function FamilyTreePage() {
             </fieldset>
 
             <div class="form-actions">
-              <button type="submit" class="btn-pill btn-pill--dark">
+              <button type="submit" class="btn btn-primary">
                 保存
               </button>
-              <button type="button" id="ft-delete-btn" class="btn-pill btn-pill--danger">
+              <button type="button" id="ft-delete-btn" class="btn btn-danger">
                 删除
               </button>
             </div>
@@ -206,10 +206,10 @@ export function FamilyTreePage() {
             <select id="ft-add-related"></select>
           </label>
           <div class="form-actions">
-            <button type="submit" class="btn-pill btn-pill--dark">
+            <button type="submit" class="btn btn-primary">
               创建
             </button>
-            <button type="button" id="ft-add-cancel" class="btn-pill btn-pill--sand">
+            <button type="button" id="ft-add-cancel" class="btn btn-ghost">
               取消
             </button>
           </div>

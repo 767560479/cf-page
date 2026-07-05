@@ -5,13 +5,9 @@ export function LabPage() {
     <>
       <SiteNav current="/lab" />
       <main class="page-wrap">
-        <header class="page-section" style="padding-top: 48px; text-align: center;">
-          <h1 class="display" style="font-size: var(--text-heading-lg); margin: 0 0 12px;">
-            实验室
-          </h1>
-          <p style="margin: 0; color: var(--color-body-brown);">
-            Cloudflare Pages + KV + D1 快速原型脚手架
-          </p>
+        <header class="page-header">
+          <h1 class="page-header__title display">实验室</h1>
+          <p class="page-header__subtitle">Cloudflare Pages + KV + D1 快速原型脚手架</p>
         </header>
 
         <section class="panel">
@@ -26,13 +22,13 @@ export function LabPage() {
               <input name="value" type="text" placeholder="hello kv" required />
             </label>
             <div class="form-actions">
-              <button type="submit" class="btn-pill btn-pill--dark">
+              <button type="submit" class="btn btn-primary">
                 写入
               </button>
-              <button type="button" id="kv-read" class="btn-pill btn-pill--sand">
+              <button type="button" id="kv-read" class="btn btn-ghost">
                 读取
               </button>
-              <button type="button" id="kv-delete" class="btn-pill btn-pill--danger">
+              <button type="button" id="kv-delete" class="btn btn-danger">
                 删除
               </button>
             </div>
@@ -53,14 +49,14 @@ export function LabPage() {
               内容
               <textarea name="content" rows="3" placeholder="可选描述"></textarea>
             </label>
-            <button type="submit" class="btn-pill btn-pill--dark">
+            <button type="submit" class="btn btn-primary">
               添加 Note
             </button>
           </form>
           <ul id="notes-list" class="notes-list"></ul>
         </section>
 
-        <section class="panel panel--stone hint">
+        <section class="panel panel--subtle hint">
           <h2>如何加新页面</h2>
           <ol>
             <li>
