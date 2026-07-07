@@ -15,6 +15,27 @@ export type ExternalSite = {
 
 export const localApps: LocalApp[] = [
   {
+    path: '/course-schedule',
+    title: '课程表编排',
+    description: '拖拽编排课表，本地保存与 Excel 导出',
+    tags: ['纯前端'],
+    icon: '📅',
+  },
+  {
+    path: '/roll-call',
+    title: '课堂点名',
+    description: 'Excel 导入名单，随机点名与反馈记录',
+    tags: ['纯前端'],
+    icon: '🎯',
+  },
+  {
+    path: '/seat-chart',
+    title: '智能排座',
+    description: '多策略排座、拖拽微调与导出分享',
+    tags: ['纯前端'],
+    icon: '🪑',
+  },
+  {
     path: '/family-tree',
     title: '家族树',
     description: '成员增删改查，可缩放家谱图',

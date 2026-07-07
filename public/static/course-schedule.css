@@ -1,0 +1,301 @@
+/* Course schedule — page-specific (DESIGN.md tokens) */
+
+.cs-app {
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: var(--spacing-24);
+}
+
+.cs-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--spacing-16);
+  margin-bottom: var(--spacing-24);
+  padding-bottom: var(--spacing-16);
+  border-bottom: 0.5px solid var(--color-graphite);
+}
+
+.cs-header h1 {
+  font-size: var(--text-subheading);
+  font-weight: var(--font-weight-w510);
+  color: var(--color-paper);
+  letter-spacing: var(--tracking-subheading);
+}
+
+.cs-actions {
+  display: flex;
+  gap: var(--spacing-8);
+}
+
+.cs-main {
+  display: flex;
+  gap: var(--spacing-24);
+  align-items: flex-start;
+}
+
+.cs-sidebar {
+  flex-shrink: 0;
+  width: 260px;
+  min-width: 260px;
+  background: var(--color-carbon);
+  border-radius: var(--radius-cards);
+  border: 0.5px solid var(--color-graphite);
+  padding: var(--spacing-20);
+  box-shadow: var(--shadow-subtle);
+}
+
+.cs-sidebar-header {
+  margin-bottom: var(--spacing-20);
+}
+
+.cs-sidebar-header h2 {
+  font-size: var(--text-caption);
+  font-weight: var(--font-weight-w510);
+  color: var(--color-fog);
+  margin-bottom: var(--spacing-12);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.cs-add-subject {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8);
+}
+
+.cs-add-subject input {
+  width: 100%;
+  padding: var(--spacing-12) var(--spacing-14, 14px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-inputs);
+  background: rgba(255, 255, 255, 0.02);
+  color: var(--color-mist);
+  font-family: var(--font-inter-variable);
+  font-size: 14px;
+}
+
+.cs-add-subject input::placeholder {
+  color: var(--color-fog);
+}
+
+.cs-add-subject input:focus {
+  outline: none;
+  border-color: var(--color-mist);
+}
+
+.cs-subject-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8);
+  max-height: 60vh;
+  overflow-y: auto;
+  margin: 0;
+  padding: 0;
+}
+
+.cs-subject-list .subject-item {
+  padding: var(--spacing-12) var(--spacing-16);
+  border-radius: var(--radius-buttons);
+  cursor: grab;
+  font-size: 14px;
+  font-weight: var(--font-weight-w510);
+  transition: transform 0.15s, opacity 0.15s;
+  user-select: none;
+  border: 1px solid transparent;
+  color: var(--color-paper);
+  text-align: center;
+}
+
+.cs-subject-list .subject-item:hover {
+  transform: translateY(-1px);
+  opacity: 0.92;
+}
+
+.cs-subject-list .subject-item:active {
+  cursor: grabbing;
+}
+
+.cs-subject-list .subject-item.dragging {
+  opacity: 0.7;
+  transform: scale(0.98);
+}
+
+/* Subject colors — distinct per subject */
+.cs-app .subject-item.color-0,
+.cs-app .course-tag.color-0 { background: #4338ca; color: #fff; }
+.cs-app .subject-item.color-1,
+.cs-app .course-tag.color-1 { background: #b91c1c; color: #fff; }
+.cs-app .subject-item.color-2,
+.cs-app .course-tag.color-2 { background: #047857; color: #fff; }
+.cs-app .subject-item.color-3,
+.cs-app .course-tag.color-3 { background: #6d28d9; color: #fff; }
+.cs-app .subject-item.color-4,
+.cs-app .course-tag.color-4 { background: #0e7490; color: #fff; }
+.cs-app .subject-item.color-5,
+.cs-app .course-tag.color-5 { background: #c2410c; color: #fff; }
+.cs-app .subject-item.color-6,
+.cs-app .course-tag.color-6 { background: #a16207; color: #fff; }
+.cs-app .subject-item.color-7,
+.cs-app .course-tag.color-7 { background: #be185d; color: #fff; }
+.cs-app .subject-item.color-8,
+.cs-app .course-tag.color-8 { background: #1d4ed8; color: #fff; }
+.cs-app .subject-item.color-9,
+.cs-app .course-tag.color-9 { background: #0f766e; color: #fff; }
+.cs-app .subject-item.color-10,
+.cs-app .course-tag.color-10 { background: #7c3aed; color: #fff; }
+.cs-app .subject-item.color-11,
+.cs-app .course-tag.color-11 { background: #374151; color: #fff; }
+.cs-app .subject-item.color-12,
+.cs-app .course-tag.color-12 { background: #0369a1; color: #fff; }
+.cs-app .subject-item.color-13,
+.cs-app .course-tag.color-13 { background: #4d7c0f; color: #fff; }
+.cs-app .subject-item.color-14,
+.cs-app .course-tag.color-14 { background: #9f1239; color: #fff; }
+.cs-app .subject-item.color-15,
+.cs-app .course-tag.color-15 { background: #5b21b6; color: #fff; }
+
+.cs-schedule-wrap {
+  flex: 1;
+  min-width: 0;
+  overflow-x: auto;
+}
+
+.cs-schedule-table-wrap {
+  background: var(--color-carbon);
+  border-radius: var(--radius-cards);
+  border: 0.5px solid var(--color-graphite);
+  overflow: hidden;
+  box-shadow: var(--shadow-subtle);
+}
+
+.cs-schedule-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.cs-schedule-table th,
+.cs-schedule-table td {
+  border: 0.5px solid var(--color-graphite);
+  padding: 0;
+  vertical-align: middle;
+  text-align: center;
+}
+
+.cs-schedule-table thead th {
+  background: var(--color-obsidian);
+  color: var(--color-fog);
+  font-weight: var(--font-weight-w510);
+  padding: var(--spacing-12) var(--spacing-8);
+  font-size: var(--text-caption);
+}
+
+.cs-schedule-table .th-time {
+  width: 88px;
+  min-width: 88px;
+  color: var(--color-mist);
+}
+
+.cs-schedule-table .td-time {
+  background: var(--color-obsidian);
+  color: var(--color-fog);
+  font-weight: var(--font-weight-regular);
+  padding: var(--spacing-8);
+  width: 88px;
+  min-width: 88px;
+  font-size: var(--text-caption);
+}
+
+.cs-schedule-table .cell {
+  width: 120px;
+  height: 56px;
+  padding: 0;
+  cursor: pointer;
+  transition: background 0.15s;
+  overflow: visible;
+  background: var(--color-carbon);
+  vertical-align: middle;
+}
+
+.cs-schedule-table .cell:hover {
+  background: var(--color-obsidian);
+}
+
+.cs-schedule-table .cell.drag-over {
+  background: rgba(228, 242, 34, 0.08);
+  box-shadow: inset 0 0 0 1px var(--color-acid-lime);
+}
+
+.cs-schedule-table .cell .course-tag {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 56px;
+  padding: 0 24px 0 8px;
+  border-radius: 0;
+  font-size: 14px;
+  font-weight: var(--font-weight-w510);
+  cursor: default;
+  box-sizing: border-box;
+}
+
+.cs-schedule-table .cell .course-tag__label {
+  pointer-events: none;
+}
+
+.cs-schedule-table .cell .course-tag .remove {
+  position: absolute;
+  top: 4px;
+  right: 6px;
+  opacity: 0.9;
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  font-weight: var(--font-weight-w510);
+  color: inherit;
+}
+
+.cs-schedule-table .cell .course-tag .remove:hover {
+  opacity: 1;
+}
+
+.cs-schedule-table .cell.empty-hint::after {
+  content: '拖放科目';
+  font-size: 12px;
+  color: var(--color-fog);
+  opacity: 0.6;
+}
+
+@media (max-width: 1000px) {
+  .cs-main {
+    flex-direction: column;
+  }
+
+  .cs-sidebar {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .cs-add-subject {
+    flex-direction: row;
+    align-items: stretch;
+  }
+
+  .cs-add-subject .btn {
+    width: auto;
+    min-width: 100px;
+    white-space: nowrap;
+  }
+
+  .cs-schedule-table .cell {
+    min-width: 80px;
+    min-height: 48px;
+    font-size: 12px;
+  }
+}
