@@ -43,6 +43,13 @@ export const localApps: LocalApp[] = [
     icon: '🌳',
   },
   {
+    path: '/stele/tan-yi-dian',
+    title: '墓碑 · 異典',
+    description: '青石金墨竖排碑文，千秋福地',
+    tags: ['纯前端'],
+    icon: '碑',
+  },
+  {
     path: '/lab',
     title: '实验室',
     description: 'KV / D1 读写与 Notes 示例',

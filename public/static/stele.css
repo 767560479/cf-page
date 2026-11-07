@@ -1,0 +1,291 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&display=swap');
+
+:root {
+  --stele-ink: #e6d29a;
+  --stele-ink-soft: #a8925a;
+  --stele-stone-0: #1a2228;
+  --stele-stone-2: #2e3c46;
+  --stele-edge: #4a5c68;
+  --stele-void: #0c1014;
+  --stele-mist: rgba(140, 170, 180, 0.08);
+  --stele-font: 'Noto Serif SC', 'Songti SC', 'SimSun', serif;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+  background: var(--stele-void);
+}
+
+.stele-page {
+  min-height: 100dvh;
+  min-height: 100svh;
+  background:
+    radial-gradient(ellipse 80% 50% at 50% 0%, rgba(80, 110, 120, 0.18), transparent 55%),
+    radial-gradient(ellipse 60% 40% at 50% 100%, rgba(40, 60, 50, 0.25), transparent 50%),
+    var(--stele-void);
+  color: var(--stele-ink);
+  font-family: var(--stele-font);
+}
+
+.stele-stage {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100dvh;
+  min-height: 100svh;
+  box-sizing: border-box;
+  padding:
+    max(clamp(0.75rem, 3vw, 2.5rem), env(safe-area-inset-top))
+    max(clamp(0.5rem, 3vw, 2.5rem), env(safe-area-inset-right))
+    max(clamp(0.75rem, 3vw, 2.5rem), env(safe-area-inset-bottom))
+    max(clamp(0.5rem, 3vw, 2.5rem), env(safe-area-inset-left));
+  overflow: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-x pan-y;
+}
+
+.stele-mist {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 30% 20%, var(--stele-mist), transparent 40%),
+    radial-gradient(circle at 70% 70%, rgba(160, 140, 90, 0.06), transparent 45%);
+  animation: stele-mist-drift 18s ease-in-out infinite alternate;
+}
+
+@keyframes stele-mist-drift {
+  from {
+    opacity: 0.55;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0.9;
+    transform: translateY(-12px);
+  }
+}
+
+.stele-stone {
+  position: relative;
+  z-index: 1;
+  width: max-content;
+  margin: 0 auto;
+  padding: clamp(1.25rem, 3vw, 2.5rem) clamp(1.25rem, 3vw, 2.75rem);
+  background:
+    linear-gradient(165deg, rgba(255, 255, 255, 0.04), transparent 40%),
+    linear-gradient(25deg, rgba(0, 0, 0, 0.25), transparent 50%),
+    linear-gradient(180deg, var(--stele-stone-2), var(--stele-stone-0) 55%, #151c22);
+  border: 1px solid var(--stele-edge);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    inset 0 -2px 12px rgba(0, 0, 0, 0.35),
+    0 24px 64px rgba(0, 0, 0, 0.45);
+  border-radius: 2px;
+  animation: stele-rise 1.1s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.stele-stone__grain {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  opacity: 0.14;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  mix-blend-mode: overlay;
+}
+
+@keyframes stele-rise {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 横批：逐字 + row-reverse，右起「千」，右→左读「千秋福地」 */
+.stele-header {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: row-reverse;
+  justify-content: center;
+  align-items: baseline;
+  gap: clamp(0.32em, 0.55em, 0.65em);
+  margin: 0 0 1.25rem;
+  font-size: clamp(1.35rem, 3.2vw, 2.35rem);
+  font-weight: 700;
+  color: var(--stele-ink);
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.45);
+  writing-mode: horizontal-tb;
+  animation: stele-fade 0.9s 0.15s both;
+}
+
+.stele-header__char {
+  flex: none;
+  line-height: 1;
+}
+
+.stele-body {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: row-reverse;
+  justify-content: center;
+  align-items: flex-start;
+  gap: clamp(0.55rem, 1.2vw, 1rem);
+  /* 由 stele.js 写入主碑实测高度 */
+  --stele-main-h: auto;
+}
+
+.stele-couplet,
+.stele-main,
+.stele-side {
+  margin: 0;
+  writing-mode: vertical-rl;
+  text-orientation: upright;
+  flex: none;
+}
+
+.stele-couplet {
+  font-size: clamp(0.95rem, 2.1vw, 1.5rem);
+  font-weight: 600;
+  color: var(--stele-ink);
+  letter-spacing: 0.28em;
+  white-space: nowrap;
+  animation: stele-fade 1s 0.25s both;
+}
+
+.stele-couplet--left {
+  animation-delay: 0.35s;
+}
+
+/* 主碑：单列，决定碑身底边 */
+.stele-main {
+  font-size: clamp(1.2rem, 2.9vw, 2.15rem);
+  font-weight: 700;
+  color: var(--stele-ink);
+  letter-spacing: 0.22em;
+  white-space: nowrap;
+  text-shadow:
+    0 0 24px rgba(230, 210, 154, 0.12),
+    0 1px 0 rgba(0, 0, 0, 0.5);
+  animation: stele-fade 1.05s 0.2s both;
+}
+
+/* 左右碑文：一整块字，高度=主碑，满了自动竖排折列 */
+.stele-side {
+  box-sizing: border-box;
+  height: var(--stele-main-h);
+  max-height: var(--stele-main-h);
+  font-size: clamp(0.48rem, 0.95vw, 0.74rem);
+  font-weight: 400;
+  color: var(--stele-ink-soft);
+  letter-spacing: 0.08em;
+  line-height: 1.05;
+  word-break: break-all;
+  overflow-wrap: anywhere;
+  /* pre-wrap：文中 \n 强制换列；仍满列自动折 */
+  white-space: pre-wrap;
+  overflow: hidden;
+  animation: stele-fade 1.1s 0.3s both;
+}
+
+.stele-side--left {
+  animation-delay: 0.4s;
+}
+
+@keyframes stele-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (max-width: 768px) {
+  .stele-stage {
+    justify-content: flex-start;
+    align-items: flex-start;
+  }
+
+  .stele-stone {
+    padding: 1rem 0.85rem 1.25rem;
+  }
+
+  .stele-header {
+    margin-bottom: 0.85rem;
+    gap: 0.4em;
+  }
+
+  .stele-body {
+    gap: 0.4rem;
+  }
+
+  .stele-couplet {
+    letter-spacing: 0.18em;
+  }
+
+  .stele-main {
+    letter-spacing: 0.14em;
+  }
+
+  .stele-side {
+    letter-spacing: 0.04em;
+  }
+}
+
+@media (max-width: 480px) {
+  .stele-stage {
+    padding:
+      max(0.6rem, env(safe-area-inset-top))
+      max(0.4rem, env(safe-area-inset-right))
+      max(0.6rem, env(safe-area-inset-bottom))
+      max(0.4rem, env(safe-area-inset-left));
+  }
+
+  .stele-stone {
+    padding: 0.85rem 0.65rem 1rem;
+  }
+
+  .stele-header {
+    font-size: 1.2rem;
+    gap: 0.32em;
+  }
+
+  .stele-body {
+    gap: 0.3rem;
+  }
+
+  .stele-couplet {
+    font-size: 0.88rem;
+    letter-spacing: 0.14em;
+  }
+
+  .stele-main {
+    font-size: 1.05rem;
+    letter-spacing: 0.1em;
+  }
+
+  .stele-side {
+    font-size: 0.45rem;
+    letter-spacing: 0.03em;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stele-mist,
+  .stele-stone,
+  .stele-header,
+  .stele-couplet,
+  .stele-main,
+  .stele-side {
+    animation: none;
+  }
+}

@@ -7,6 +7,8 @@ import { FamilyTreePage } from './pages/family-tree'
 import { CourseSchedulePage } from './pages/course-schedule'
 import { RollCallPage } from './pages/roll-call'
 import { SeatChartPage } from './pages/seat-chart'
+import { StelePage } from './pages/stele'
+import { getStele, listSteles } from './steles'
 import { Hono } from 'hono'
 import { renderer } from './renderer'
 
@@ -56,6 +58,21 @@ app.get('/seat-chart', (c) => {
   return c.render(<SeatChartPage />, {
     title: '学生智能排座',
     css: '/static/seat-chart.css',
+  })
+})
+
+app.get('/stele', (c) => {
+  const first = listSteles()[0]
+  if (!first) return c.notFound()
+  return c.redirect(`/stele/${first.slug}`)
+})
+
+app.get('/stele/:slug', (c) => {
+  const stele = getStele(c.req.param('slug'))
+  if (!stele) return c.notFound()
+  return c.render(<StelePage stele={stele} />, {
+    title: stele.title,
+    css: '/static/stele.css',
   })
 })
 
