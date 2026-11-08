@@ -45,7 +45,8 @@ body {
   overflow: auto;
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
-  touch-action: pan-x pan-y;
+  /* pan-x/pan-y  alone 会禁掉 pinch-zoom；manipulation 允许滚动+双指放大 */
+  touch-action: manipulation;
 }
 
 .stele-mist {
@@ -137,10 +138,13 @@ body {
   display: flex;
   flex-direction: row-reverse;
   justify-content: center;
-  align-items: flex-start;
+  /* 底边齐平：侧栏较短时顶自然低一字，主碑顶突出 */
+  align-items: flex-end;
   gap: clamp(0.55rem, 1.2vw, 1rem);
-  /* 由 stele.js 写入主碑实测高度 */
+  --stele-main-fs: clamp(1.2rem, 2.9vw, 2.15rem);
+  /* 由 stele.js 写入 */
   --stele-main-h: auto;
+  --stele-side-h: auto;
 }
 
 .stele-couplet,
@@ -152,7 +156,9 @@ body {
   flex: none;
 }
 
+/* 对联：相对主碑高度垂直居中 */
 .stele-couplet {
+  align-self: center;
   font-size: clamp(0.95rem, 2.1vw, 1.5rem);
   font-weight: 600;
   color: var(--stele-ink);
@@ -165,9 +171,9 @@ body {
   animation-delay: 0.35s;
 }
 
-/* 主碑：单列，决定碑身底边 */
+/* 主碑：单列，顶缘最高，决定碑身底边 */
 .stele-main {
-  font-size: clamp(1.2rem, 2.9vw, 2.15rem);
+  font-size: var(--stele-main-fs);
   font-weight: 700;
   color: var(--stele-ink);
   letter-spacing: 0.22em;
@@ -178,11 +184,11 @@ body {
   animation: stele-fade 1.05s 0.2s both;
 }
 
-/* 左右碑文：一整块字，高度=主碑，满了自动竖排折列 */
+/* 左右碑文：与主碑底齐；高度 = 主碑 - 一字，顶自然略低 */
 .stele-side {
   box-sizing: border-box;
-  height: var(--stele-main-h);
-  max-height: var(--stele-main-h);
+  height: var(--stele-side-h, auto);
+  max-height: var(--stele-side-h, none);
   font-size: clamp(0.48rem, 0.95vw, 0.74rem);
   font-weight: 400;
   color: var(--stele-ink-soft);
