@@ -156,9 +156,9 @@ body {
   flex: none;
 }
 
-/* 对联：相对主碑高度垂直居中 */
+/* 对联：底对齐，垂直居中由 stele.js 写 margin-bottom（避开 iOS writing-mode 坑） */
 .stele-couplet {
-  align-self: center;
+  align-self: flex-end;
   font-size: clamp(0.95rem, 2.1vw, 1.5rem);
   font-weight: 600;
   color: var(--stele-ink);

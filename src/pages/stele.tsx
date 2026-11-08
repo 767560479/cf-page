@@ -62,7 +62,7 @@ export function StelePage({ stele }: { stele: SteleData }) {
         </article>
       </div>
 
-      <script src="/static/stele.js"></script>
+      <script src="/static/stele.js?v=20261108b"></script>
     </main>
   )
 }

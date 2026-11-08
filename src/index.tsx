@@ -72,7 +72,7 @@ app.get('/stele/:slug', (c) => {
   if (!stele) return c.notFound()
   return c.render(<StelePage stele={stele} />, {
     title: stele.title,
-    css: '/static/stele.css',
+    css: '/static/stele.css?v=20261108b',
   })
 })
 
